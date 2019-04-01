@@ -23,6 +23,8 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "register.cpp"
                 "myndarray.cc"
                 "app/ground_truth.cc"
-                "app/srp_lcs.cpp")
+                "app/srp_lcs.cpp"
+                "app/rh_lcs.cpp"
+              )
 
 TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} )

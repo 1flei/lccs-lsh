@@ -30,6 +30,7 @@ int main(int argc, char **argv)
 		("output_filename,O", value(&outputFilename), "output folder path (with / at the end) or output filename")
 
         ("K,K", value<int>(), "parameter used for some algorithms")
+        ("M,M", value<int>(), "parameter used for some algorithms")
         
         ("msg", value<string>(), "msg")
     ;
@@ -99,20 +100,12 @@ int main(int argc, char **argv)
     cout << "finishing reading data, query and ground truth" << endl;
 
 
-	if(vm.count("of")){
-		if(outputFilename[outputFilename.length()-1]!='/'){
-			outputFilename = outputFilename+"/";
-		}
-		create_dir(&outputFilename[0]);
-	}
-	
-	// const char *truth_set = groundtruthFilename.c_str();
-	// const char *output_folder = outputFilename.c_str();
-
 
     using namespace MyCallbackRegister;
     if (!vm.count("algorithm_name")) {
         cout << "algorithm_name required" << endl;
+
+        cout << "see --help for more information" << endl;
     } else{
         cout << vm["algorithm_name"].as<string>() << endl;
         setvm(vm);
