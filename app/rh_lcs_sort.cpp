@@ -1,8 +1,8 @@
-#include "rh_lcs.h"
+#include "rh_lcs_sort.h"
 
 using namespace std;
 
-bool RH_LCS::registered = MyCallbackRegister::registerCallback("rh_lcs", 
+bool RH_LCS_SORT::registered = MyCallbackRegister::registerCallback("rh_lcs_sort", 
 		"n qn d K M dataset_filename queryset_filename ground_truth_filename output_filename", [&](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
@@ -16,11 +16,11 @@ bool RH_LCS::registered = MyCallbackRegister::registerCallback("rh_lcs",
 	string output_filename = algAs<string>("output_filename");
 
     const auto fif = [&](){
-		auto lsh = make_unique<RH_LCS>(n, d, K, data, M);
+		auto lsh = make_unique<RH_LCS_SORT>(n, d, K, data, M);
         return lsh;
     };
 
-	const auto fq = [&](RH_LCS &lsh, int k, const float* queryi, MinK_List* list) {
+	const auto fq = [&](RH_LCS_SORT &lsh, int k, const float* queryi, MinK_List* list) {
         lsh.kmc_angle(k, queryi, list);
     };
 
@@ -28,13 +28,13 @@ bool RH_LCS::registered = MyCallbackRegister::registerCallback("rh_lcs",
 });
 
 // -----------------------------------------------------------------------------
-RH_LCS::RH_LCS(					// constructor
+RH_LCS_SORT::RH_LCS_SORT(					// constructor
 	int n,								// cardinality of dataset
 	int d,								// dimensionality of dataset
 	int K,								// number of hash tables
 	const float **data, 
     int M)					// data objects
-    : samIndexer(K*(K-1)/2/M), M_(M)
+    : M_(M)
 {
 	// -------------------------------------------------------------------------
 	//  init parameters
@@ -63,24 +63,24 @@ RH_LCS::RH_LCS(					// constructor
 }
 
 // -----------------------------------------------------------------------------
-RH_LCS::~RH_LCS()					// destructor
+RH_LCS_SORT::~RH_LCS_SORT()					// destructor
 {
 }
 
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-void RH_LCS::bulkload()			// bulkloading
+void RH_LCS_SORT::bulkload()			// bulkloading
 {
+    codes.reserve(n_pts_);
 	for (int i = 0; i < n_pts_; ++i) {
-        auto codes = get_proj_vector(data_[i]);
-        samIndexer.insert(codes);
+        codes.emplace_back(get_proj_vector(data_[i]));
 	}
+    samIndexer = make_unique<SALCS>(codes[0].size(), codes);
 //	printf("finish computing hash-sigs\n");
 }
 
-
-std::vector<int> RH_LCS::get_proj_vector(const float *data)
+std::vector<int> RH_LCS_SORT::get_proj_vector(const float *data)
 {
     std::vector<int> ret;
     std::vector<Scalar> dists(K_);
@@ -111,7 +111,7 @@ std::vector<int> RH_LCS::get_proj_vector(const float *data)
 
 
 // -----------------------------------------------------------------------------
-int RH_LCS::kmc_angle(					// c-k-AMC search
+int RH_LCS_SORT::kmc_angle(					// c-k-AMC search
 	int   top_k,						// top-k value
 	const float *query,					// input query
 	MinK_List *list)					// top-k MC results (return)
@@ -125,7 +125,7 @@ int RH_LCS::kmc_angle(					// c-k-AMC search
         float angle = calc_angle(dim_, data_[idx], query);
 		list->insert(angle, idx + 1);
     };
-    samIndexer.klcs(codes, nCandidates, f);
+    samIndexer->klcs(codes, nCandidates, f);
 
 	return 0;
 }
