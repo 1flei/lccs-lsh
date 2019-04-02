@@ -8,7 +8,7 @@
 #include <set>
 #include <unordered_set>
 
-typedef int SigType;
+typedef int32_t SigType;
 
 //LCS by sort
 class SALCS

@@ -101,7 +101,7 @@ std::vector<int> RH_LCS_SORT::get_proj_vector(const float *data)
             sig = (sig<<1);
         }
         if(++m==M_){
-            ret.push_back((u*K_+v+1)*(1<<M_) + sig);
+            ret.push_back(sig);
             m = 0;
             sig = 0;
         }
