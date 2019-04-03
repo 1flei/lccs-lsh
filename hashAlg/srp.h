@@ -9,47 +9,23 @@
 class SRP
 {
 public:
-    SRP(int d, int K);      //dim of data object, #hasher 
+    SRP(int d, int K, int M);      //dim of data object, #hasher, #bits per hasher 
     ~SRP();
-
-    //
-    template<typename Container>
-    std::vector<bool> getSig(Container& data){
-        std::vector<bool> ret(M);
-
-        for(int i=0;i<M;i++){
-            Scalar si = 0.;
-            int j = 0;
-            for(Scalar dj:data){
-                int idx = i*dim+j;
-                si += p[idx]*dj;
-
-                if(++j>=dim){
-                    break;
-                }
-            }
-            ret[i] = si;
-        }
-    }
-    
-    template<typename Containers>
-    std::vector<std::vector<bool> > getSigs(Containers& data){
-        std::vector<std::vector<bool> > ret;
-        for(auto& datai:data){
-            //push rvalue
-            ret.emplace_back(getSig(datai));
-        }
-        return ret;
-    }
-
-    //unsafe!
-    std::vector<bool> getSig(Scalar* data);
-
-    std::vector<std::vector<bool> > getSigs(Scalar** data);
-
+    std::vector<SigType> getSig(const Scalar *data);
 protected:
+    int dim, K, M;
     std::vector<Scalar> p;
-    int dim, M;
+};
 
-    static bool registered;
+//produce K signatures using ~K^0.5 hasher
+class SRPPair
+{
+public:
+    SRPPair(int d, int K, int M);      //dim of data object, #hasher, #bits per hasher 
+    ~SRPPair();
+    std::vector<SigType> getSig(const Scalar *data);
+protected:
+    int dim, K, M, nHasher;
+    std::vector<Scalar> p;
+    std::vector<std::pair<int, int> > pairs;
 };

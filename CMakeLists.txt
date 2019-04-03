@@ -22,11 +22,13 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "util.cpp"
                 "register.cpp"
                 "myndarray.cc"
+                "hashAlg/srp.cpp"
+                "hashAlg/pivots.cpp"
+                "bucketAlg/lcs.cpp"
+                "app/composible_index.cpp"
                 "app/ground_truth.cc"
                 "app/srp_lcs.cpp"
                 "app/rh_lcs.cpp"
-                "app/rh_lcs_sort.cpp"
-                "app/sort_lcs.cpp"
               )
 
 TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} )

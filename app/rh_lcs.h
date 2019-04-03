@@ -5,7 +5,7 @@
 #include "../util.h"
 #include "../pri_queue.h"
 #include <random>
-#include "sam_lcs.h"
+#include "../bucketAlg/sam_lcs.h"
 #include "../register.h"
 #include "../benchmark_util.h"
 

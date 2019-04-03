@@ -14,6 +14,8 @@ int main(int argc, char **argv)
     int n, qn, d;
 	string datasetFilename, queryFilename, weightFilename, groundtruthFilename, outputFilename;
 
+	srand(time(NULL));
+
     // Declare the supported options.
     options_description desc("Allowed options");
     desc.add_options()
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
     if (vm.count("help")) {
         cout << desc << "\n";
 
-        cout << "available algorithms are:" << endl;
+        cout << "available algorithms (and required parameters) are:" << endl;
         MyCallbackRegister::showAllRegisteredCallback();
         return 1;
     }
@@ -107,7 +109,7 @@ int main(int argc, char **argv)
 
         cout << "see --help for more information" << endl;
     } else{
-        cout << vm["algorithm_name"].as<string>() << endl;
+        // cout << vm["algorithm_name"].as<string>() << endl;
         setvm(vm);
         addArg("dataset", (const float**)data);
         addArg("queryset", (const float**)query);

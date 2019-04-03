@@ -1,5 +1,6 @@
 #ifndef __DEF_H
 #define __DEF_H
+#include <cstdint>
 
 // -----------------------------------------------------------------------------
 //  Macros
@@ -36,6 +37,6 @@ const int   CANDIDATES    = 100;
 const int   MAX_BLOCK_NUM = 5000;
 
 typedef float Scalar;
-
+typedef int32_t SigType;
 
 #endif // __DEF_H

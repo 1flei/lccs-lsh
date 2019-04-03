@@ -1,47 +1,6 @@
-#include "srp.h"
+#include "hd3hash.h"
 
-using namespace std;
-
-SRP::SRP(int d, int K, int M)
-    : dim(d)
-    , K(K)
-    , M(M)
-    , p(K * M * d)
-{
-    assert(d > 0 && K > 0 && M > 0);
-
-    std::normal_distribution<double> normalDistribution(0.);
-    std::random_device rd;
-    std::default_random_engine rng(rd());
-    for (int i = 0; i < K * M * d; i++) {
-        p[i] = normalDistribution(rng);
-    }
-}
-
-SRP::~SRP()
-{
-}
-
-std::vector<SigType> SRP::getSig(const Scalar* data)
-{
-    std::vector<SigType> ret(K);
-    for (int i = 0; i < K; i++) {
-        int sigi = 0;
-        for (int j = 0; j < M; j++) {
-            int idx = i * M * dim + j * dim;
-            float sum = calc_inner_product(dim, &p[idx], data);
-            if (sum >= 0) {
-                sigi = (sigi << 1) + 1;
-            } else {
-                sigi = sigi << 1;
-            }
-        }
-        ret[i] = sigi;
-    }
-    return ret;
-}
-
-SRPPair::SRPPair(int d, int K, int M)
+HD3Hash::HD3Hash(int d, int K, int M)
     : dim(d)
     , K(K)
     , M(M)
@@ -75,11 +34,11 @@ SRPPair::SRPPair(int d, int K, int M)
     random_shuffle(pairs.begin(), pairs.end());
 }
 
-SRPPair::~SRPPair()
+HD3Hash::~HD3Hash()
 {
 }
 
-std::vector<SigType> SRPPair::getSig(const Scalar* data)
+std::vector<SigType> HD3Hash::getSig(const Scalar* data)
 {
     std::vector<Scalar> innerProduct(nHasher);
     for (int i = 0; i < nHasher; i++) {
