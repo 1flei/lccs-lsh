@@ -2,7 +2,7 @@
 
 #include <string> 
 #include <functional>
-#include <unordered_map>
+#include <map>
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/any.hpp>
@@ -24,7 +24,8 @@ struct AlgCallback{
 	}
 };
     
-extern std::unordered_map<std::string, AlgCallback> eventMap;
+//use ordered map to show in alphabetical order
+extern std::map<std::string, AlgCallback> eventMap;
 extern boost::program_options::variables_map vm;
 
 bool registerCallback(const std::string &name, const std::string &params, const std::function<void()> &callback);

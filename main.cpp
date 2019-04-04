@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 
         ("K,K", value<int>(), "parameter used for some algorithms")
         ("M,M", value<int>(), "parameter used for some algorithms")
+        ("m,m", value<int>(), "parameter used for some algorithms")
         
         ("msg", value<string>(), "msg")
     ;

@@ -31,4 +31,4 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "app/rh_lcs.cpp"
               )
 
-TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} )
+TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a)

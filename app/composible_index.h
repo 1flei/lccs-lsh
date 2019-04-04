@@ -7,6 +7,12 @@
 #include "../register.h"
 #include "../benchmark_util.h"
 
+#include "../hashAlg/srp.h"
+#include "../hashAlg/pivots.h"
+#include "../bucketAlg/hamming.h"
+#include "../bucketAlg/lcs.h"
+#include "../bucketAlg/klbucketing.h"
+
 extern bool SRPP_LINEAR_SCAN_REGISTED;
 extern bool SRP_LINEAR_SCAN_REGISTED;
 extern bool PIVOTSBINARY_LINEAR_SCAN_REGISTED;

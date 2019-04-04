@@ -1,7 +1,7 @@
 #include "register.h"
 
 
-std::unordered_map<std::string, MyCallbackRegister::AlgCallback> MyCallbackRegister::eventMap;
+std::map<std::string, MyCallbackRegister::AlgCallback> MyCallbackRegister::eventMap;
 boost::program_options::variables_map MyCallbackRegister::vm;
 
 
