@@ -1,0 +1,5 @@
+/mnt/hd4/home/leiyifan/lcsb/mih/build/CMakeFiles/rebuild_cache.dir
+/mnt/hd4/home/leiyifan/lcsb/mih/build/CMakeFiles/edit_cache.dir
+/mnt/hd4/home/leiyifan/lcsb/mih/build/CMakeFiles/mihlib.dir
+/mnt/hd4/home/leiyifan/lcsb/mih/build/CMakeFiles/linscan.dir
+/mnt/hd4/home/leiyifan/lcsb/mih/build/CMakeFiles/mih.dir
