@@ -7,6 +7,7 @@ SRP::SRP(int d, int K, int M)
     , K(K)
     , M(M)
     , p(K * M * d)
+    , sigdim(K)
 {
     assert(d > 0 && K > 0 && M > 0);
 
@@ -41,61 +42,75 @@ std::vector<SigType> SRP::getSig(const Scalar* data)
     return ret;
 }
 
-SRPPair::SRPPair(int d, int K, int M)
+void SRP::getSig(const Scalar* data, SigType* ret)
+{
+    for (int i = 0; i < K; i++) {
+        int sigi = 0;
+        for (int j = 0; j < M; j++) {
+            int idx = i * M * dim + j * dim;
+            float sum = calc_inner_product(dim, &p[idx], data);
+            if (sum >= 0) {
+                sigi = (sigi << 1) + 1;
+            } else {
+                sigi = sigi << 1;
+            }
+        }
+        ret[i] = sigi;
+    }
+}
+
+SRPCompact::SRPCompact(int d, int K)
     : dim(d)
     , K(K)
-    , M(M)
+    , p(K * d)
+    , sigdim(K/64)
 {
-    assert(d > 0 && K > 0 && M > 0);
-    //let nHasher*(nHasher-1)/2 > K*M;
-    nHasher = (int)(sqrt(2 * K * M) + 1.5);
-    p.resize(nHasher * d);
-    pairs.reserve(nHasher * (nHasher - 1) / 2);
+    assert(d > 0 && K > 0 && K%64==0);
 
     std::normal_distribution<double> normalDistribution(0.);
     std::random_device rd;
     std::default_random_engine rng(rd());
-    for (int i = 0; i < nHasher; i++) {
-        for (int j = 0; j < d; j++) {
-            int idx = i * d + j;
-            p[idx] = normalDistribution(rng);
-        }
-        double norm = sqrt(calc_inner_product(d, &p[i * d], &p[i * d]));
-        for (int j = 0; j < d; j++) {
-            int idx = i * d + j;
-            p[idx] /= norm;
-        }
+    for (int i = 0; i < K * d; i++) {
+        p[i] = normalDistribution(rng);
     }
-
-    for (int i = 0; i < nHasher; i++) {
-        for (int j = i + 1; j < nHasher; j++) {
-            pairs.emplace_back(i, j);
-        }
-    }
-    random_shuffle(pairs.begin(), pairs.end());
 }
 
-SRPPair::~SRPPair()
+SRPCompact::~SRPCompact()
 {
 }
 
-std::vector<SigType> SRPPair::getSig(const Scalar* data)
+std::vector<uint64_t> SRPCompact::getSig(const Scalar* data)
 {
-    std::vector<Scalar> innerProduct(nHasher);
-    for (int i = 0; i < nHasher; i++) {
-        innerProduct[i] = calc_inner_product(dim, &p[i * dim], data);
-    }
-
-    std::vector<SigType> ret(K);
-    for (int i = 0; i < K; i++) {
-        int sigi = 0;
-        for (int j = 0; j < M; j++) {
-            int idx = i * M + j;
-            int u = pairs[idx].first;
-            int v = pairs[idx].second;
-            sigi = (sigi << 1) ^ (innerProduct[u] < innerProduct[v]);
+    std::vector<uint64_t> ret(K/64);
+    for (int i = 0; i < K/64; i++) {
+        uint64_t sigi = 0;
+        for (int j = 0; j < 64; j++) {
+            int idx = (i * 64 + j) * dim;
+            float sum = calc_inner_product(dim, &p[idx], data);
+            if (sum >= 0) {
+                sigi = (sigi << 1) + 1;
+            } else {
+                sigi = sigi << 1;
+            }
         }
         ret[i] = sigi;
     }
     return ret;
+}
+
+void SRPCompact::getSig(const Scalar* data, uint64_t* ret)
+{
+    for (int i = 0; i < K/64; i++) {
+        uint64_t sigi = 0;
+        for (int j = 0; j < 64; j++) {
+            int idx = (i * 64 + j) * dim;
+            float sum = calc_inner_product(dim, &p[idx], data);
+            if (sum >= 0) {
+                sigi = (sigi << 1) + 1;
+            } else {
+                sigi = sigi << 1;
+            }
+        }
+        ret[i] = sigi;
+    }
 }

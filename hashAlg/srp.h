@@ -12,20 +12,26 @@ public:
     SRP(int d, int K, int M);      //dim of data object, #hasher, #bits per hasher 
     ~SRP();
     std::vector<SigType> getSig(const Scalar *data);
-protected:
+    void getSig(const Scalar *data, SigType* sig);
+
     int dim, K, M;
+    int sigdim;
+protected:
     std::vector<Scalar> p;
 };
 
-//produce K signatures using ~K^0.5 hasher
-class SRPPair
+//Random Sign Projection
+class SRPCompact
 {
 public:
-    SRPPair(int d, int K, int M);      //dim of data object, #hasher, #bits per hasher 
-    ~SRPPair();
-    std::vector<SigType> getSig(const Scalar *data);
+    SRPCompact(int d, int K);      //dim of data object, #hasher
+    ~SRPCompact();
+    std::vector<uint64_t> getSig(const Scalar *data);
+    void getSig(const Scalar *data, uint64_t* sig);
+
+    int dim, K;
+    int sigdim;
 protected:
-    int dim, K, M, nHasher;
     std::vector<Scalar> p;
-    std::vector<std::pair<int, int> > pairs;
 };
+

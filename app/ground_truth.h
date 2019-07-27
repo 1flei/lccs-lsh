@@ -32,6 +32,14 @@ int ground_truth_for_weighted_space(					// find the ground truth results
 	const float **weight,				// query set
 	const char  *truth_set);				// address of truth set
 
+int ground_truth_l2(					// find the ground truth results
+	int   n,							// number of data points
+	int   qn,							// number of query points
+	int   d,							// dimension of space
+	const float **data,					// data set
+	const float **query,				// query set
+	const char  *truth_set);				// address of truth set
+
 int ground_truth_furthest(					// find the ground truth results
 	int   n,							// number of data points
 	int   qn,							// number of query points
@@ -41,6 +49,14 @@ int ground_truth_furthest(					// find the ground truth results
 	const char  *truth_set);				// address of truth set
 
 int ground_truth_angle(					// find the ground truth results
+	int   n,							// number of data points
+	int   qn,							// number of query points
+	int   d,							// dimension of space
+	const float **data,					// data set
+	const float **query,				// query set
+	const char  *truth_set);				// address of truth set
+
+int ground_truth_cosine_similarity(					// find the ground truth results
 	int   n,							// number of data points
 	int   qn,							// number of query points
 	int   d,							// dimension of space

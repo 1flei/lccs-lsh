@@ -99,6 +99,31 @@ int read_data(						// read data/query set from disk
 }
 
 // -----------------------------------------------------------------------------
+int read_data_binary(						// read data/query set from disk
+	int   n,							// number of data/query objects
+	int   d,			 				// dimensionality
+	const char *fname,					// address of data/query set
+	float **data)						// data/query objects (return)
+{
+	FILE *fp = fopen(fname, "rb");
+	if (!fp) {
+		printf("Could not open %s\n", fname);
+		return 1;
+	}
+
+	int i   = 0;
+	int tmp = -1;
+	while (!feof(fp) && i < n) {
+		fread(data[i], sizeof(float), d, fp);
+		++i;
+	}
+//	assert(feof(fp) && i == n);
+	fclose(fp);
+
+	return 0;
+}
+
+// -----------------------------------------------------------------------------
 int read_ground_truth(				// read ground truth results from disk
 	int qn,								// number of query objects
 	const char *fname,					// address of truth set
@@ -322,3 +347,5 @@ float calc_ratio(
 	}
 	return sqrt(ret);
 }
+
+std::array<uint8_t, PrefixTableSize> _prefix_table;

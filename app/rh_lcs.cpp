@@ -2,30 +2,30 @@
 
 using namespace std;
 
-bool RH_LCS::registered = MyCallbackRegister::registerCallback("rh_lcs", 
-		"n qn d K M dataset_filename queryset_filename ground_truth_filename output_filename", [&](){
-	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-    int M = algAs<int>("M");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
+// bool RH_LCS::registered = MyCallbackRegister::registerCallback("rh_lcs", 
+// 		"n qn d K M dataset_filename queryset_filename ground_truth_filename output_filename", [&](){
+// 	using namespace MyCallbackRegister;
+// 	int n = algAs<int>("n");
+// 	int qn = algAs<int>("qn");
+// 	int d = algAs<int>("d");
+// 	int K = algAs<int>("K");
+//     int M = algAs<int>("M");
+// 	const float** data = algAs<const float**>("dataset");
+// 	const float** query = algAs<const float**>("queryset");
+// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
+// 	string output_filename = algAs<string>("output_filename");
 
-    const auto fif = [&](){
-		auto lsh = make_unique<RH_LCS>(n, d, K, data, M);
-        return lsh;
-    };
+//     const auto fif = [&](){
+// 		auto lsh = make_unique<RH_LCS>(n, d, K, data, M);
+//         return lsh;
+//     };
 
-	const auto fq = [&](RH_LCS &lsh, int k, const float* queryi, MinK_List* list) {
-        lsh.kmc_angle(k, queryi, list);
-    };
+// 	const auto fq = [&](RH_LCS &lsh, int k, const float* queryi, MinK_List* list) {
+//         lsh.kmc_angle(k, queryi, list);
+//     };
 
-    benchmarkMinklist(qn, d, query, ground_truth, output_filename, fif, fq);
-});
+//     benchmarkMinklist(qn, query, ground_truth, output_filename, fif, fq);
+// });
 
 // -----------------------------------------------------------------------------
 RH_LCS::RH_LCS(					// constructor

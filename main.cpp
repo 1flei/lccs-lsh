@@ -4,6 +4,7 @@
 #include "register.h"
 #include "myndarray.h"
 #include "util.h"
+#include "myTimer.h"
 
 using namespace std;
 using namespace boost::program_options;
@@ -14,7 +15,8 @@ int main(int argc, char **argv)
     int n, qn, d;
 	string datasetFilename, queryFilename, weightFilename, groundtruthFilename, outputFilename;
 
-	srand(time(NULL));
+	// srand(time(NULL));
+	srand(666);
 
     // Declare the supported options.
     options_description desc("Allowed options");
@@ -33,7 +35,17 @@ int main(int argc, char **argv)
 
         ("K,K", value<int>(), "parameter used for some algorithms")
         ("M,M", value<int>(), "parameter used for some algorithms")
+        ("L,L", value<int>(), "parameter used for some algorithms")
         ("m,m", value<int>(), "parameter used for some algorithms")
+        ("p,p", value<int>(), "parameter used for some algorithms")
+        ("step", value<int>(), "parameter used for some algorithms")
+        ("r,r", value<double>(), "parameter used for some algorithms")
+
+		("binary_input", "read from binary input")
+
+		("alpha", value<double>(), "parameter used for some algorithms")
+		
+		("checked_candidate", value<int>()->default_value(100), "the number of candidates to verify for each algorithm")
         
         ("msg", value<string>(), "msg")
     ;
@@ -56,39 +68,48 @@ int main(int argc, char **argv)
 	// -------------------------------------------------------------------------
 	typedef NDArray<2, Scalar> F2DArray;
 
-	unique_ptr<F2DArray > dataArr, queryArr, weightArr;
+	unique_ptr<F2DArray > dataArr, queryArr;
 	unique_ptr<NDArray<2, Result> > resultArr;
 
 	float **data=nullptr;
 	float **query=nullptr;
-	float **weight=nullptr;
 	Result **results=nullptr;
 
-	if(datasetFilename!=""){
-		dataArr = unique_ptr<F2DArray>(new F2DArray({(size_t)n, (size_t)d}));
-		data = dataArr->to_ptr();
-		if (read_data(n, d, datasetFilename.c_str(), data) == 1) {
-			printf("Reading dataset error!\n");
-			return 1;
+	if(vm.count("binary_input")){
+		if(datasetFilename!=""){
+			dataArr = unique_ptr<F2DArray>(new F2DArray({(size_t)n, (size_t)d}));
+			data = dataArr->to_ptr();
+			if (read_data_binary(n, d, datasetFilename.c_str(), data) == 1) {
+				printf("Reading dataset error!\n");
+				return 1;
+			}
 		}
-	}
 
-	if(queryFilename!=""){
-		queryArr = unique_ptr<F2DArray>(new F2DArray({(size_t)qn, (size_t)d}));
-		query = queryArr->to_ptr();
-		if (read_data(qn, d, queryFilename.c_str(), query) == 1) {
-			printf("Reading query set error!\n");
-			return 1;
+		if(queryFilename!=""){
+			queryArr = unique_ptr<F2DArray>(new F2DArray({(size_t)qn, (size_t)d}));
+			query = queryArr->to_ptr();
+			if (read_data_binary(qn, d, queryFilename.c_str(), query) == 1) {
+				printf("Reading query set error!\n");
+				return 1;
+			}
 		}
-	}
+	} else{
+		if(datasetFilename!=""){
+			dataArr = unique_ptr<F2DArray>(new F2DArray({(size_t)n, (size_t)d}));
+			data = dataArr->to_ptr();
+			if (read_data(n, d, datasetFilename.c_str(), data) == 1) {
+				printf("Reading dataset error!\n");
+				return 1;
+			}
+		}
 
-	if(weightFilename!=""){
-		weightArr = unique_ptr<F2DArray>(new F2DArray({(size_t)qn, (size_t)d}));
-		weight = weightArr->to_ptr();
-		if (read_data(qn, d, weightFilename.c_str(), weight) == 1) {
-			printf("Reading query weight error!\n");
-			printf("Will not use weight then!\n");
-			return 1;
+		if(queryFilename!=""){
+			queryArr = unique_ptr<F2DArray>(new F2DArray({(size_t)qn, (size_t)d}));
+			query = queryArr->to_ptr();
+			if (read_data(qn, d, queryFilename.c_str(), query) == 1) {
+				printf("Reading query set error!\n");
+				return 1;
+			}
 		}
 	}
 
@@ -118,5 +139,7 @@ int main(int argc, char **argv)
         
         run(vm["algorithm_name"].as<string>());
     }
+
+	MyTimer::printAll();
     return 0;
 }

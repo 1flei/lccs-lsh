@@ -1,12 +1,13 @@
 PROJECT(LCSB)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.4)
-set (CMAKE_CXX_STANDARD 14)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
+SET(CMAKE_CXX_COMPILER /usr/bin/g++-8)
+set (CMAKE_CXX_STANDARD 17)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -29,6 +30,8 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "app/ground_truth.cc"
                 "app/srp_lcs.cpp"
                 "app/rh_lcs.cpp"
+
+                "bucketAlg/lcs_test.cpp"
               )
 
 TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a)

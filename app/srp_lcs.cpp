@@ -2,29 +2,29 @@
 
 using namespace std;
 
-bool SRP_LCS::registered = MyCallbackRegister::registerCallback("srp_lcs", 
-		"n qn d K dataset_filename queryset_filename ground_truth_filename output_filename", [&](){
-	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
+// bool SRP_LCS::registered = MyCallbackRegister::registerCallback("srp_lcs", 
+// 		"n qn d K dataset_filename queryset_filename ground_truth_filename output_filename", [&](){
+// 	using namespace MyCallbackRegister;
+// 	int n = algAs<int>("n");
+// 	int qn = algAs<int>("qn");
+// 	int d = algAs<int>("d");
+// 	int K = algAs<int>("K");
+// 	const float** data = algAs<const float**>("dataset");
+// 	const float** query = algAs<const float**>("queryset");
+// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
+// 	string output_filename = algAs<string>("output_filename");
 
-    const auto fif = [&](){
-		auto lsh = make_unique<SRP_LCS>(n, d, K, data);
-        return lsh;
-    };
+//     const auto fif = [&](){
+// 		auto lsh = make_unique<SRP_LCS>(n, d, K, data);
+//         return lsh;
+//     };
 
-	const auto fq = [&](SRP_LCS &lsh, int k, const float* queryi, MinK_List* list) {
-        lsh.kmc_angle(k, queryi, list);
-    };
+// 	const auto fq = [&](SRP_LCS &lsh, int k, const float* queryi, MinK_List* list) {
+//         lsh.kmc_angle(k, queryi, list);
+//     };
 
-    benchmarkMinklist(qn, d, query, ground_truth, output_filename, fif, fq);
-});
+//     benchmarkMinklist(qn, query, ground_truth, output_filename, fif, fq);
+// });
 
 // -----------------------------------------------------------------------------
 SRP_LCS::SRP_LCS(					// constructor

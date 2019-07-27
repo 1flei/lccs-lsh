@@ -1,4 +1,9 @@
+.gitignore
 build/*
 .vscode/*
 data/*
 FFHT/*
+lshkit-0.2.1/*
+Eigen/*
+results/*
+test/*

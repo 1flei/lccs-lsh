@@ -23,6 +23,8 @@ template<int D, class Scalar>
 class NDArray
 {
 public:
+    NDArray(): lens({0}), buffer(nullptr), buffer_raw(nullptr) {}
+
     NDArray(const std::array<size_t, D> &dims):lens(dims), buffer_raw(nullptr){
         elemLens[D] = 1;
         for(int i=D-1;i>=0;--i){
@@ -47,7 +49,9 @@ public:
             elemLens[i] = elemLens[i+1]*lens[i];
         }
 
-        delete[] buffer;
+        if(buffer){
+            delete[] buffer;
+        }
         buffer = new Scalar[elemLens[0]];
         if(buffer_raw!=nullptr){
             delete[] buffer_raw;
@@ -72,10 +76,10 @@ public:
         return buffer+elemLens[0];
     }
 
-    typedef typename NDArrayView<D-1, Scalar>::PType* PType;
-    typedef typename NDArrayView<D-1, Scalar>::CPType* CPType;
+    using PtrType =  typename NDArrayView<D-1, Scalar>::PtrType*;
+    using ConstPtrType = typename NDArrayView<D-1, Scalar>::ConstPtrType*;
 
-    PType to_ptr(){
+    PtrType to_ptr(){
         if(buffer_raw==nullptr){
             int size = 0;
             int curp = 1;
@@ -105,11 +109,20 @@ public:
                 basei[j] = (void*)(buffer+lens[D-1]*j);
             }
         }
-        return (PType)buffer_raw;
+        return (PtrType)buffer_raw;
     }
 
-    inline CPType to_cptr(){
-        return (CPType) to_ptr();
+    inline ConstPtrType to_cptr(){
+        return (ConstPtrType) to_ptr();
+    }
+
+    int64_t get_memory_usage()
+    {
+        int64_t ret = int64_t(sizeof(*this)) + int64_t(elemLens[0])*int64_t(sizeof(Scalar));
+        // if(buffer_raw != nullptr){
+        //     ret += elemLens[0] / lens[D-1] * sizeof(Scalar*);
+        // }
+        return ret;
     }
 
 protected:
@@ -126,8 +139,8 @@ public:
     }
     NDArrayView(Scalar *p, size_t *elemLensp):p(p), elemLensp(elemLensp){}
 
-    typedef typename NDArrayView<D-1, Scalar>::PType* PType;
-    typedef typename NDArrayView<D-1, Scalar>::CPType* CPType;
+    typedef typename NDArrayView<D-1, Scalar>::PtrType* PtrType;
+    typedef typename NDArrayView<D-1, Scalar>::ConstPtrType* ConstPtrType;
 
     Scalar* begin(){
         return p;
@@ -149,9 +162,9 @@ public:
     }
     NDArrayView(Scalar *p, size_t *elemLensp):p(p), elemLensp(elemLensp){}
 
-    typedef Scalar* PType;
-    typedef const Scalar* CPType;
-    operator PType() const{
+    typedef Scalar* PtrType;
+    typedef const Scalar* ConstPtrType;
+    operator PtrType() const{
         return p;
     }
 
@@ -170,8 +183,8 @@ template<class Scalar>
 class NDArrayView<0, Scalar>
 {
 public:
-    typedef Scalar PType;
-    typedef const Scalar CPType;
+    typedef Scalar PtrType;
+    typedef const Scalar ConstPtrType;
 };
 
 NDArray<1, double> make_darray(size_t sz0);

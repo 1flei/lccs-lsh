@@ -1,5 +1,4 @@
-#ifndef __UTIL_H
-#define __UTIL_H
+#pragma once
 
 #include <memory>
 #include <iostream>
@@ -43,11 +42,18 @@ int read_data(						// read data set from disk
 	Scalar **data);						// data (return)
 
 // -----------------------------------------------------------------------------
+int read_data_binary(						// read data set from disk
+	int   n,							// number of data points
+	int   d,							// dimensionality
+	const char *fname,					// address of data
+	Scalar **data);						// data (return)
+
+// -----------------------------------------------------------------------------
 int read_ground_truth(				// read ground truth results from disk
 	int    qn,							// number of query objects
 	const  char *fname,					// address of truth set
-	Result **R);						// ground truth results (return)
-
+	Result **R);		
+	
 // -----------------------------------------------------------------------------
 Scalar calc_inner_product(			// calc inner product
 	int   dim,							// dimension
@@ -113,6 +119,69 @@ inline int get_num_bits64(uint64_t x)			////get the number of 1 in the binary re
     x = ((x + (x >> 4)) & 0x0F0F0F0F0F0F0F0F);
     return (x*(0x0101010101010101))>>56;
 }
+
+const int PrefixTableSize = 1 << 16;
+extern std::array<uint8_t, PrefixTableSize> _prefix_table;
+
+inline bool init_prefix_table()
+{
+	for (int i = 0; i < PrefixTableSize; i++) {
+		//calculate the prefix-1 of i, since it will be run only once, implement using stupid way
+		_prefix_table[i] = 0;
+		for (int j = 0; j < 16; j++) {
+			int mask = 1 << (15 - j);
+			if (i&mask) {
+				_prefix_table[i]++;
+			}
+			else {
+				break;
+			}
+		}
+	}
+	return true;
+}
+
+inline int get_num_prefix(uint16_t u)
+{
+	static bool initialized = init_prefix_table();
+	return _prefix_table[u];
+}
+
+inline int get_num_prefix(uint32_t u)
+{
+	int a = get_num_prefix(uint16_t(u >> 16));
+	if (a != 16) {
+		return a;
+	}
+	int b = get_num_prefix(uint16_t(u & 0xffff));
+	return a + b;
+}
+
+inline int get_num_prefix(uint64_t u)
+{
+	int a = get_num_prefix(uint16_t(u >> 48));
+	if (a != 16) {
+		return a;
+	}
+	int b = get_num_prefix(uint16_t((u >> 32) & 0xffff));
+	if (b != 16) {
+		return a + b;
+	}
+	int c = get_num_prefix(uint16_t((u >> 16) & 0xffff));
+	if (c != 16) {
+		return a + b + c;
+	}
+	int d = get_num_prefix(uint16_t(u & 0xffff));
+	return a + b + c + d;
+}
+
+
+
+inline uint64_t hash_combine(uint64_t h0, uint64_t h1)
+{
+    return h0 ^ (0x9e3779b9 + (h0<<6) + (h0>>2) + h1);
+}
+
 
 int calc_hamming_dist(			// calc inner product
 	int   dim,		
@@ -261,11 +330,12 @@ std::vector<int> getExtent(std::vector<T>& toSplit, std::vector<T>& refs)
 	return ret;
 }
 
-struct CountMarker
+template<class uintt>
+struct CountMarkerU
 {
-	std::vector<unsigned> markCount;
-	unsigned curCnt;
-	CountMarker(int sz):markCount(sz), curCnt(1){}
+	std::vector<uintt> markCount;
+	uintt curCnt;
+	CountMarkerU(int sz=0):markCount(sz), curCnt(1){}
 
 
 	void resize(int n){
@@ -280,14 +350,16 @@ struct CountMarker
 		return markCount[n] >= curCnt;
 	}
 	void clear(){
-		if(curCnt==~0u){
-			curCnt=0;
+		if(curCnt==~uintt(0)){
+			curCnt=1;
 			markCount.clear();
 		} else{
 			curCnt++;
 		}
 	}
 };
+
+using CountMarker = CountMarkerU<unsigned>;
 
 //array version of CountMatker
 template<class T> 
@@ -317,5 +389,3 @@ struct CountArray
 		marker.clear();
 	}
 };
-
-#endif // __UTIL_H
