@@ -17,6 +17,10 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+FIND_PACKAGE(GSL) 
+include_directories(${GSL_INCLUDE_DIR} )
+include_directories("lshkit-0.2.1/include")
+
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "pri_queue.cc"
@@ -26,12 +30,14 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "hashAlg/srp.cpp"
                 "hashAlg/pivots.cpp"
                 "bucketAlg/lcs.cpp"
+                "bucketAlg/lcs_int_reorder.cpp"
                 "app/composible_index.cpp"
                 "app/ground_truth.cc"
-                "app/srp_lcs.cpp"
-                "app/rh_lcs.cpp"
+                "app/mplsh.cpp"
 
                 "bucketAlg/lcs_test.cpp"
               )
 
-TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a)
+TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} 
+  ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
+  GSL::gsl GSL::gslcblas)

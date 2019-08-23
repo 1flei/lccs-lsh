@@ -362,7 +362,7 @@ namespace mylcs
 
 
 		template<typename F>
-		void forCandidates(int nCandidates, const std::vector<uint64_t>& query, const F& f) 
+		void for_candidates(int nCandidates, const std::vector<uint64_t>& query, const F& f) 
 		{
 			const uint64_t* queryp = (const uint64_t*)&query[0];
 

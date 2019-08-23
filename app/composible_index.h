@@ -13,11 +13,14 @@
 #include "../bucketAlg/klbucketing.h"
 #include "../bucketAlg/lcs.h"
 #include "../bucketAlg/lcs_int.h"
+#include "../bucketAlg/lcs_int_reorder.h"
+#include "../bucketAlg/mymplsh.h"
 // #include "../bucketAlg/lcs_opt.h"
 // #include "../bucketAlg/lcs_test.h"
 #include "../hashAlg/e2.h"
 #include "../hashAlg/pivots.h"
 #include "../hashAlg/srp.h"
+#include "../hashAlg/e2eigen.h"
 
 //for illustration only
 class HasherInterface {
@@ -33,7 +36,7 @@ public:
     virtual void build(const std::vector<std::vector<SigType>>& codes);
 
     template <typename F>
-    void forCandidates(int nCandidates, const std::vector<SigType>& qcode, const F& f);
+    void for_candidates(int nCandidates, const std::vector<SigType>& qcode, const F& f);
 };
 
 //simple wraper combining hasher and bucketer
@@ -78,6 +81,25 @@ public:
         }
         printf("building index\n");
         bucketer->build(codes);
+    }
+
+    //build index and then free sigs
+    void build_wo_sigs(int n, const Scalar** data)
+    {
+        assert(hasher && bucketer);
+
+        // codes.reserve(n);
+        printf("computing hash-code\n");
+        codes.resize({ size_t(n), size_t(hasher->sigdim) });
+        for (int i = 0; i < n; ++i) {
+            // codes.emplace_back(hasher->getSig(data[i]));
+            hasher->getSig(data[i], &codes[i][0]);
+        }
+        printf("building index\n");
+        bucketer->build(codes);
+
+        printf("free codes\n");
+        codes.resize({0, 0});
     }
 
     void inc_build(int n, const Scalar** data)
@@ -128,7 +150,7 @@ public:
     void query(int nCandidates, const float* query, const FCandidate& f)
     {
         auto qcode = hasher->getSig(query);
-        bucketer->forCandidates(nCandidates, qcode, f);
+        bucketer->for_candidates(nCandidates, qcode, f);
     }
 
     // std::vector<std::vector<SigT> > codes;

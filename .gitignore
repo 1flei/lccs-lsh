@@ -1,13 +1,14 @@
 .gitignore
-build/*
-.vscode/*
-data/*
-FFHT/*
-lshkit-0.2.1/*
-Eigen/*
-results/*
-test/*
+build
+.vscode
+data
+FFHT
+lshkit-0.2.1
+Eigen
+results
+test
 *.pyc
+mih
 
 lcsb_hq
 lcsb_hq2

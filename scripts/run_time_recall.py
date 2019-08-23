@@ -3,8 +3,8 @@ import os
 from time import gmtime, strftime
 
 # datasets = [Gist(), Sift(), MNIST(), Sift10M()]
-# datasets = [MNIST784(), Sift(), Gist()]
-datasets = [MNIST784()]
+datasets = [MNIST784(), Sift(), Gist()]
+# datasets = [MNIST784()]
 # datasets = [Sift10M()]
 
 def get_dataset_path(dataset):
@@ -80,10 +80,35 @@ def run_c2lsh(datasets=datasets, Ls=[100]):
             print(cmd)
             os.system(cmd)
 
+def run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], Ks=list(range(5, 30)), rratio=1., method='mplsh'):
+    curtime = strftime("%m-%d_%H_%M", gmtime())
+    def getArgs(ds, L, K):
+        return '-A %s -n %d -q %d -d %d -D %s -Q %s -O %s -G %s -r %d -L %d -K %d --binary_input'%\
+            (method, ds.n, ds.qn, ds.d, 
+            get_dataset_path(ds), 
+            get_query_path(ds), 
+            get_output_filename(ds, method, curtime), 
+            get_grount_truth_path(ds), 
+            ds.r * rratio, 
+            L, 
+            K)
+    
+    for ds in datasets:
+        for L in Ls:
+            for K in Ks:
+                args = getArgs(ds, L, K)
+                cmd = './lcsb '+args
+                print(cmd)
+                os.system(cmd)
+
 if __name__ == '__main__':
-    datasets = [MNIST784()]
+    # datasets = [MNIST784(), Sift()]
+    datasets = [MNIST784(), Sift(), Gist()]
     # run_lcsb(datasets=datasets, Ls=[32, 64, 128, 256, 512, 1024, 2048, 4096])
-    run_lcsb(datasets=datasets, Ls=[32, 64, 128, 256])
-    # run_e2lsh(datasets=datasets, Ls=[100, 200, 300], Ks=[5, 10, 15, 20, 25, 30])
-    run_e2lsh(datasets=datasets, Ls=[400], Ks=list(range(5, 16)))
-    run_c2lsh(datasets=datasets, Ls=[32, 64, 128, 256, 512])
+    # run_lcsb(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256])
+    run_lcsb(datasets=datasets, Ls=[8, 13, 21, 34, 55, 89, 144, 233])
+    # run_e2lsh(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
+    # run_c2lsh(datasets=datasets, Ls=[32, 64, 128, 256, 512])
+
+    # run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], rratio=1)
+    # run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], rratio=1, method='fancy_mplsh')

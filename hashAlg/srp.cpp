@@ -6,8 +6,8 @@ SRP::SRP(int d, int K, int M)
     : dim(d)
     , K(K)
     , M(M)
-    , p(K * M * d)
     , sigdim(K)
+    , p(K * M * d)
 {
     assert(d > 0 && K > 0 && M > 0);
 
@@ -62,8 +62,8 @@ void SRP::getSig(const Scalar* data, SigType* ret)
 SRPCompact::SRPCompact(int d, int K)
     : dim(d)
     , K(K)
-    , p(K * d)
     , sigdim(K/64)
+    , p(K * d)
 {
     assert(d > 0 && K > 0 && K%64==0);
 

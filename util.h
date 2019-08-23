@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstdint> 
 #include <vector>
+#include <random>
 
 #include <unistd.h>
 #include "def.h"
@@ -60,17 +61,6 @@ Scalar calc_inner_product(			// calc inner product
 	const Scalar *p1,					// 1st point
 	const Scalar *p2);					// 2nd point
 	
-// -----------------------------------------------------------------------------
-Scalar calc_l2_sqr(					// calc L2 square distance
-	int   dim,							// dimension
-	const Scalar *p1,					// 1st point
-	const Scalar *p2);					// 2nd point
-
-// -----------------------------------------------------------------------------
-Scalar calc_l2_dist(					// calc L2 distance
-	int   dim,							// dimension
-	const Scalar *p1,					// 1st point
-	const Scalar *p2);					// 2nd point
 
 // -----------------------------------------------------------------------------
 Scalar calc_l1_dist(					// calc L1 distance
@@ -182,6 +172,14 @@ inline uint64_t hash_combine(uint64_t h0, uint64_t h1)
     return h0 ^ (0x9e3779b9 + (h0<<6) + (h0>>2) + h1);
 }
 
+inline int log2i(unsigned x) {
+    return sizeof(int) * 8 - __builtin_clz(x) - 1;
+}
+inline int log2ll(unsigned long long x) {
+    return sizeof(int) * 8 - __builtin_clzll(x) - 1;
+}
+
+
 
 int calc_hamming_dist(			// calc inner product
 	int   dim,		
@@ -224,6 +222,34 @@ std::unique_ptr<T> make_unique(Args&&... args)
 #else
 using std::make_unique;
 #endif
+
+
+
+// -----------------------------------------------------------------------------
+template<class ScalarType>
+ScalarType calc_l2_sqr(					// calc L2 square distance
+	int   dim,							// dimension
+	const ScalarType *p1,					// 1st point
+	const ScalarType *p2)					// 2nd point
+{
+	ScalarType diff(0);
+	ScalarType ret(0);
+	for (int i = 0; i < dim; ++i) {
+		diff = p1[i] - p2[i];
+		ret += diff * diff;
+	}
+	return ret;
+}
+
+// -----------------------------------------------------------------------------
+template<class ScalarType>
+ScalarType calc_l2_dist(					// calc L2 distance
+	int   dim,							// dimension
+	const ScalarType *p1,					// 1st point
+	const ScalarType *p2)					// 2nd point
+{
+	return sqrt(calc_l2_sqr(dim, p1, p2));
+}
 
 
 template<class Iter>
@@ -387,5 +413,57 @@ struct CountArray
 
 	void clear(){
 		marker.clear();
+	}
+};
+
+
+//combine hash signature using pertubation hash
+template<class INTTYPE>
+struct HashCombinator
+{
+	HashCombinator(int n, uint64_t range=0xffffffffffffffff)
+		: n(n)
+	{
+		std::mt19937 rng(time(NULL));
+		if(range < 0x7fffffffffffffff){
+			mask = 1;
+			while(mask < range){
+				mask <<= 1;
+			}
+			--mask;
+		} else{
+			mask = 0xffffffffffffffff;
+		}
+
+		keys.resize(n*SIZEPERONE);
+		for(int i=0;i<n*SIZEPERONE;i++){
+			for(int j=0;j<256;j++){
+				uint64_t r = rng();
+				keys[i][j] = r & mask;
+			}
+		}
+	}
+
+	static const int SIZEPERONE = sizeof(INTTYPE);
+	int n;
+	uint64_t mask;
+
+	std::vector<std::array<uint64_t, 256> > keys;
+
+	template<typename IT> 
+	uint64_t hash_combine(const IT& beg)
+	{
+		uint64_t ret = 0;
+		IT cur = beg;
+		for(int i=0;i<n;i++){
+			INTTYPE cur_hash = *cur;
+			for(int j=0;j<SIZEPERONE;j++){
+				uint8_t kij = cur_hash & 0xff;
+				ret ^= keys[i*SIZEPERONE+j][kij];
+				cur_hash >>= 8;
+			}
+			++cur;
+		}
+		return ret;
 	}
 };

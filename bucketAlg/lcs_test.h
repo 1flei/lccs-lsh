@@ -70,8 +70,8 @@ public:
 		MaxK_List *list);				// top-k MC results  (return)
 
     template<typename F>
-    // void forCandidates(int cand_size, const std::vector<uint64_t>& query, const F& f) 
-    void forCandidates(int cand_size, const std::vector<uint64_t>& query, const F& f) 
+    // void for_candidates(int cand_size, const std::vector<uint64_t>& query, const F& f) 
+    void for_candidates(int cand_size, const std::vector<uint64_t>& query, const F& f) 
     {  
         uint64_t *hash_key_q = (uint64_t *)&query[0];
 

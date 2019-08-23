@@ -32,13 +32,13 @@ public:
         sigdim = K;
     }
     ~E2() {}
-    std::vector<SigType> getSig(const Scalar *data)
+    std::vector<SigType> getSig(const Scalar *data) const
     {
         std::vector<SigType> ret(sigdim);
         getSig(data, &ret[0]);
         return ret;
     }
-    void getSig(const Scalar *data, SigType* ret)
+    void getSig(const Scalar *data, SigType* ret) const
     {
         for(int k=0;k<K;k++){
             double projection = 0.;
@@ -49,7 +49,25 @@ public:
             }
             projection += b[k];
 
-            ret[k] = SigType(projection/r);
+            ret[k] = SigType(floor(projection/r) );
+        }
+    }
+
+    void getSigDelta(const Scalar *data, SigType* ret, Scalar* delta) const
+    {
+        for(int k=0;k<K;k++){
+            double projection = 0.;
+            for(int i=0;i<dim;i++){
+                double x = data[i];
+                int pidx = k*dim + i;
+                projection += x*p[pidx];
+            }
+            projection += b[k];
+
+            ret[k] = SigType(floor(projection/r) );
+
+            //only for MPLSH
+            delta[k] = projection/r - ret[k];
         }
     }
 

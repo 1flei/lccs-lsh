@@ -26,8 +26,6 @@ namespace mylcs
 
         void build(NDArray<2, int32_t> &data)
         {
-            dim = dim;
-            // datap = &data;
             datap = data.to_ptr();
 			// nPnts = datap->size();
 			nPnts = data.lens[0];
@@ -36,8 +34,8 @@ namespace mylcs
 
 			// printf("init!!\n");
 
-			initSortedIdx();
-			initNextLink();
+			init_sorted_idx();
+			init_next_link();
         }
 
 		struct DataIdx
@@ -63,11 +61,11 @@ namespace mylcs
         CountMarker checked;
         // CountMarkerU<uint16_t> inque;
 
-		inline const int32_t* getDatap(int qloc, int idx)
+		inline const int32_t* get_datap(int qloc, int idx)
 		{
 			return datap[sorted_idx[qloc][idx].idx];
 		}
-		inline const int32_t* getDatap(const DataIdx& idx)
+		inline const int32_t* get_datap(const DataIdx& idx)
 		{
 			// return &datap->at(idx.idx)[0];
 			return datap[(idx.idx)];
@@ -87,7 +85,7 @@ namespace mylcs
 		}
 
 		//bucket-sort leveraging extents
-		void initSortedIdx()
+		void init_sorted_idx()
 		{
 			int TableSize = (1<<logn)+1;
 			sorted_idx.resize(dim);
@@ -98,7 +96,7 @@ namespace mylcs
 				}
 				
 				const auto& cmpf = [d, this](const DataIdx& a, const DataIdx& b) -> bool {
-					auto [len, isLess] = matchUtil(a, b, d, 0); 
+					auto [len, isLess] = match_util(a, b, d, 0); 
 					return isLess;
 				};
 
@@ -106,7 +104,7 @@ namespace mylcs
 			}
 		}
 
-		void initNextLink()
+		void init_next_link()
 		{
 			std::unordered_map<int, int> nextMap;
 			
@@ -131,13 +129,13 @@ namespace mylcs
 
 		//lowidx, lowlen, highlen
 		//assume the length of matching of low and high are lowlen and
-		std::tuple<int, int, int> getLocScan(const int32_t* q, int loc, int low, int lowlen, int high, int highlen)
+		std::tuple<int, int, int> get_loc_scan(const int32_t* q, int loc, int low, int lowlen, int high, int highlen)
 		{
 			int lastlen = lowlen;
 			int minlen = std::min(lowlen, highlen);
 			for(int i=low+1;i<high;i++){
-				const int32_t* dpi = getDatap(loc, i);
-				auto [ilen, iless] = matchUtil(q, dpi, loc, minlen);
+				const int32_t* dpi = get_datap(loc, i);
+				auto [ilen, iless] = match_util(q, dpi, loc, minlen);
 
 				if(iless){
 					return std::make_tuple(i-1, lastlen, ilen);
@@ -150,15 +148,15 @@ namespace mylcs
 
 		//binary search with linear when interval is small
 		//return  (lowidx, lowlen, highlen) that q \in [lowidx, highidx) or lowidx==0 or highidx==N-1
-		std::tuple<int, int, int> getLocMixed(const int32_t* query, int qloc, int low, int lowlen, int high, int highlen)
+		std::tuple<int, int, int> get_loc_mixed(const int32_t* query, int qloc, int low, int lowlen, int high, int highlen)
 		{
 			static const int SCAN_SIZE = 4;
 			// const auto& sorted_idx_qloc = sorted_idx[qloc];
 
 			//return datap->at(idx[qloc][a]) < query
 			const auto& cmp = [&](int a, int match=0) -> std::tuple<int, bool> {
-				const int32_t* dpa = getDatap(qloc, a);
-				return matchUtil(query, dpa, qloc, match);
+				const int32_t* dpa = get_datap(qloc, a);
+				return match_util(query, dpa, qloc, match);
 			};
 
 
@@ -180,27 +178,27 @@ namespace mylcs
 				}
 			}
 
-			return getLocScan(query, qloc, low, lowlen, high, highlen);
+			return get_loc_scan(query, qloc, low, lowlen, high, highlen);
 		}
 
 		//return  (lowidx, lowlen, highlen) that q \in [lowidx, highidx) or lowidx==0 or highidx==N-1
-		std::tuple<int, int, int> getLoc(const int32_t* query, int qloc)
+		std::tuple<int, int, int> get_loc(const int32_t* query, int qloc)
 		{
 			int low = 0;
 			int high = nPnts-1;
-			const int32_t* dplow = getDatap(qloc, low);
-			const int32_t* dphigh = getDatap(qloc, high);
-			auto [lowlen, lowisless] = matchUtil(query, dplow, qloc, 0);
-			auto [highlen, highisless] = matchUtil(query, dphigh, qloc, 0);
+			const int32_t* dplow = get_datap(qloc, low);
+			const int32_t* dphigh = get_datap(qloc, high);
+			auto [lowlen, lowisless] = match_util(query, dplow, qloc, 0);
+			auto [highlen, highisless] = match_util(query, dphigh, qloc, 0);
 
-			return getLocMixed(query, qloc, low, lowlen, high, highlen);
+			return get_loc_mixed(query, qloc, low, lowlen, high, highlen);
 
 		}
 
 
-		//matchUtil :: [sigs] a-> [sigs] b->int loc-> (int, bool)
+		//match_util :: [sigs] a-> [sigs] b->int loc-> (int, bool)
 		//return matchlen and bool(x<y)
-		std::tuple<int, bool> matchUtil(const int32_t* x, const int32_t* y, int loc, int match)
+		std::tuple<int, bool> match_util(const int32_t* x, const int32_t* y, int loc, int match)
 		{
 			//to make sure the order is correct
 			if(match>0){
@@ -220,12 +218,12 @@ namespace mylcs
 			return std::make_tuple(match, false);
 		} 
 
-		std::tuple<int, bool> matchUtil(const DataIdx& x, const DataIdx& y, int loc, int match)
+		std::tuple<int, bool> match_util(const DataIdx& x, const DataIdx& y, int loc, int match)
 		{
 			//to make sure the order is correct
 			const int32_t* xp = datap[x.idx];
 			const int32_t* yp = datap[y.idx];
-			return matchUtil(xp, yp, loc, match);
+			return match_util(xp, yp, loc, match);
 		} 
 
 		struct CandidateLoc {
@@ -249,7 +247,7 @@ namespace mylcs
 		}
 
 		template<typename F>
-		void forCandidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
+		void for_candidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
 		{
 			const int32_t* queryp = (const int32_t*)&query[0];
 
@@ -282,8 +280,8 @@ namespace mylcs
 			const auto& addCandidates2 = [&](int qloc, int idx) {
 				// int qlocidx = idx*dim + qloc;
 				// if (!inque.isMarked(qlocidx)) {
-				const int32_t* datap = getDatap(qloc, idx);
-				auto [plen, isLess] = matchUtil(queryp, datap, qloc, 0);
+				const int32_t* datap = get_datap(qloc, idx);
+				auto [plen, isLess] = match_util(queryp, datap, qloc, 0);
 				// printf("    addCandidates2   %d, %d, plen=%d, isless=%d\n", qloc, idx, plen, isLess);
 				candidates.emplace(qloc, idx, plen, isLess);
 					// inque.mark(qlocidx);
@@ -294,7 +292,7 @@ namespace mylcs
 
 			//get the first location of query
 			// MyTimer::pusht();
-			auto [curidx, lowlen, highlen] = getLoc(queryp, 0);
+			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
 			addCandidates(0, curidx, lowlen, false);
 			addCandidates(0, curidx+1, highlen, true);
 			// double t0 =  MyTimer::popt();
@@ -311,7 +309,7 @@ namespace mylcs
 
 				if(lowlen < step || highlen < step){
 					// potential = nCandidates;
-					std::tie(curidx, lowlen, highlen) = getLoc(queryp, d);
+					std::tie(curidx, lowlen, highlen) = get_loc(queryp, d);
 				} else{
 					if(lowlen!=dim){
 						lowlen -= step;
@@ -320,8 +318,8 @@ namespace mylcs
 						highlen -= step;
 					}
 					// potential = potential*(highidx-lowidx)+1;
-					// std::tie(curidx, lowlen, highlen) = getLocScan(queryp, d, lowidx, lowlen, highidx, highlen);
-					std::tie(curidx, lowlen, highlen) = getLocMixed(queryp, d, lowidx, lowlen, highidx, highlen);
+					// std::tie(curidx, lowlen, highlen) = get_loc_scan(queryp, d, lowidx, lowlen, highidx, highlen);
+					std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
 				}
 				// printf("  curidx, lowlen, highlen=%d, %d, %d\n", curidx, lowlen, highlen);
 				// printf("  push %d, %d, %d, %d\n", d, curidx, lowlen, false);
@@ -340,6 +338,44 @@ namespace mylcs
 				}
 				// }
 			}
+		}
+	};
+
+
+	class LCCS_LSH
+	{
+	public:
+		LCCS_LSH(int M, int step)
+			:M(M), step(step), lccs(M*step, step)
+		{
+			
+		}
+
+		int M;
+		int step;
+		int nPnts;
+
+		// NDArray<2, int32_t> combined_codes;
+		// HashCombinator<int32_t> hc;
+
+        void build(NDArray<2, int32_t> &codes)
+        {
+			nPnts = codes.lens[0];
+
+			lccs.build(codes);
+        }
+		LCS_SORT_INT lccs;
+
+
+		int64_t get_memory_usage()
+		{
+			return lccs.get_memory_usage();
+		}
+
+		template<typename F>
+		void for_candidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
+		{
+			lccs.for_candidates(nCandidates, query, f);
 		}
 	};
 

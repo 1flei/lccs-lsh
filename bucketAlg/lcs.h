@@ -62,7 +62,7 @@ public:
 	};
 
 	template<typename F>
-	void forCandidates(int nCandidates, std::vector<SigType>& query, const F& f) {
+	void for_candidates(int nCandidates, std::vector<SigType>& query, const F& f) {
 		assert(query.size() == dim);
 
 		std::priority_queue<CandidateLoc> candidates;

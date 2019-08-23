@@ -208,27 +208,6 @@ float calc_l2_sqr(					// calc L2 square distance
 	return ret;
 }
 
-// -----------------------------------------------------------------------------
-float calc_l2_dist(					// calc L2 distance
-	int   dim,							// dimension
-	const float *p1,					// 1st point
-	const float *p2)					// 2nd point
-{
-	return sqrt(calc_l2_sqr(dim, p1, p2));
-}
-
-// -----------------------------------------------------------------------------
-float calc_l1_dist(					// calc L1 distance
-	int   dim,							// dimension
-	const float *p1,					// 1st point
-	const float *p2)					// 2nd point
-{
-	float ret = 0.0f;
-	for (int i = 0; i < dim; ++i) {
-		ret += fabs(p1[i] - p2[i]);
-	}
-	return ret;
-}
 
 // -----------------------------------------------------------------------------
 float calc_recall(					// calc recall (percentage)

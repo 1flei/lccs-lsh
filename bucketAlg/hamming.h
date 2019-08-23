@@ -27,7 +27,7 @@ public:
     }
     
     template<typename F>
-    void forCandidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) {
+    void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) {
         const auto& codes = *codesp;
         std::vector<int> dists(codes.size());
         for(int i=0;i<codes.size();i++){
@@ -73,7 +73,7 @@ public:
     }
     
     template<typename F>
-    void forCandidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) {
+    void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) {
         std::vector<UINT32> results(nCandidates);
         UINT8* u8qcodep = (UINT8*)&qcode[0];
         mih->query(nCandidates, &results[0], &numres[0], u8qcodep);

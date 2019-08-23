@@ -53,7 +53,7 @@ public:
 
     //cnt strategy, it turns out that cnt strategy is faster than threshold strategy
     template<typename F>
-    void forCandidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) 
+    void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) 
     {
         // int nMarked = 0;    
         // cm.clear();
