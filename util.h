@@ -110,62 +110,9 @@ inline int get_num_bits64(uint64_t x)			////get the number of 1 in the binary re
     return (x*(0x0101010101010101))>>56;
 }
 
-const int PrefixTableSize = 1 << 16;
-extern std::array<uint8_t, PrefixTableSize> _prefix_table;
-
-inline bool init_prefix_table()
-{
-	for (int i = 0; i < PrefixTableSize; i++) {
-		//calculate the prefix-1 of i, since it will be run only once, implement using stupid way
-		_prefix_table[i] = 0;
-		for (int j = 0; j < 16; j++) {
-			int mask = 1 << (15 - j);
-			if (i&mask) {
-				_prefix_table[i]++;
-			}
-			else {
-				break;
-			}
-		}
-	}
-	return true;
-}
-
-inline int get_num_prefix(uint16_t u)
-{
-	static bool initialized = init_prefix_table();
-	return _prefix_table[u];
-}
-
-inline int get_num_prefix(uint32_t u)
-{
-	int a = get_num_prefix(uint16_t(u >> 16));
-	if (a != 16) {
-		return a;
-	}
-	int b = get_num_prefix(uint16_t(u & 0xffff));
-	return a + b;
-}
-
-inline int get_num_prefix(uint64_t u)
-{
-	int a = get_num_prefix(uint16_t(u >> 48));
-	if (a != 16) {
-		return a;
-	}
-	int b = get_num_prefix(uint16_t((u >> 32) & 0xffff));
-	if (b != 16) {
-		return a + b;
-	}
-	int c = get_num_prefix(uint16_t((u >> 16) & 0xffff));
-	if (c != 16) {
-		return a + b + c;
-	}
-	int d = get_num_prefix(uint16_t(u & 0xffff));
-	return a + b + c + d;
-}
-
-
+int get_num_prefix(uint16_t u);
+int get_num_prefix(uint32_t u);
+int get_num_prefix(uint64_t u);
 
 inline uint64_t hash_combine(uint64_t h0, uint64_t h1)
 {
@@ -212,33 +159,67 @@ Scalar calc_ratio(
 	const Result *Rs, 
 	MaxK_List *list);
 
-#if __cplusplus < 201402L
-//make_unique, which is available in c++17
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-#else
-using std::make_unique;
-#endif
-
-
-
 // -----------------------------------------------------------------------------
 template<class ScalarType>
-ScalarType calc_l2_sqr(					// calc L2 square distance
-	int   dim,							// dimension
-	const ScalarType *p1,					// 1st point
-	const ScalarType *p2)					// 2nd point
+ScalarType sqr(ScalarType x)
 {
-	ScalarType diff(0);
-	ScalarType ret(0);
-	for (int i = 0; i < dim; ++i) {
-		diff = p1[i] - p2[i];
-		ret += diff * diff;
-	}
-	return ret;
+	return x*x;
+}
+
+
+template<class ScalarType> 
+inline ScalarType calc_l2_sqr(int dim, const ScalarType* x, const ScalarType* y)
+{
+    unsigned d = dim & ~unsigned(7);
+    const ScalarType *aa = x, *end_a = aa + d;
+    const ScalarType *bb = y, *end_b = bb + d;
+#ifdef __GNUC__
+    __builtin_prefetch(aa, 0, 3);
+    __builtin_prefetch(bb, 0, 0);
+#endif
+    ScalarType r = 0.0;
+    ScalarType r0, r1, r2, r3, r4, r5, r6, r7;
+
+    const ScalarType *a = end_a, *b = end_b;
+
+    r0 = r1 = r2 = r3 = r4 = r5 = r6 = r7 = 0.0;
+
+    switch (dim & 7) {
+        case 7: r6 = sqr(a[6] - b[6]);
+  		// fall through
+        case 6: r5 = sqr(a[5] - b[5]);
+  		// fall through
+        case 5: r4 = sqr(a[4] - b[4]);
+  		// fall through
+        case 4: r3 = sqr(a[3] - b[3]);
+  		// fall through
+        case 3: r2 = sqr(a[2] - b[2]);
+  		// fall through
+        case 2: r1 = sqr(a[1] - b[1]);
+  		// fall through
+        case 1: r0 = sqr(a[0] - b[0]);
+    }
+
+    a = aa; b = bb;
+
+    for (; a < end_a; a += 8, b += 8) {
+#ifdef __GNUC__
+        __builtin_prefetch(a + 32, 0, 3);
+        __builtin_prefetch(b + 32, 0, 0);
+#endif
+        r += r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;
+        r0 = sqr(a[0] - b[0]);
+        r1 = sqr(a[1] - b[1]);
+        r2 = sqr(a[2] - b[2]);
+        r3 = sqr(a[3] - b[3]);
+        r4 = sqr(a[4] - b[4]);
+        r5 = sqr(a[5] - b[5]);
+        r6 = sqr(a[6] - b[6]);
+        r7 = sqr(a[7] - b[7]);
+    }
+
+    r += r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;
+    return r;
 }
 
 // -----------------------------------------------------------------------------

@@ -194,3 +194,82 @@ public:
     }
 
 };
+
+class KLBucketingCompact {
+public:
+    KLBucketingCompact(int n, int L, int K)
+        : nPnts(n)
+        , L(L)
+        , buckets(L)
+        , K(K)
+        , cm(nPnts)
+    {
+        //using pertubation hash to combine hash signatures
+        assert(K<32);
+        for(int i=0;i<L;i++){
+            buckets[i].resize(1<<K);
+        }
+    };
+    int nPnts;
+    int L;
+    std::vector<std::vector<std::vector<uint32_t>>> buckets;
+    int K;
+    CountMarker cm;
+
+    // void build(const std::vector<std::vector<SigType> > &codes) {
+    void build(NDArray<2, uint64_t>& codes)
+    {
+        assert(codes.lens[1] == K * L);
+        // codesp = codes.to_ptr();
+        //build hash table based on codes
+        for (int i = 0; i < nPnts; i++) {
+            for (int j = 0; j < L; j++) {
+                uint32_t hashcode32 = hc.hash_combine(&codes[i][j*K]);
+                buckets[j][hashcode32].push_back(i);
+            }
+        }
+    }
+
+    void insert(int i, std::vector<uint64_t>& codei)
+    {
+        for (int j = 0; j < L; j++) {
+            uint32_t hashcode32 = hc.hash_combine(&codei[j*K]);
+            // assert(hashcode32 < buckets[j].size());
+            buckets[j][hashcode32].push_back(i);
+        }
+    }
+
+    template <typename F>
+    void for_candidates(int nCandidates, const std::vector<uint64_t>& qcode, const F& f)
+    {
+        cm.clear();
+        for (int j = 0; j < L; j++) {
+            uint32_t hashcode32 = hc.hash_combine(&qcode[j*K]);
+            for (int idx : buckets[j][hashcode32]) {
+                if (!cm.isMarked(idx)) {
+                    f(idx);
+                    cm.mark(idx);
+                    if (!--nCandidates) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    int64_t get_memory_usage()
+    {
+        int64_t ret = sizeof(*this);      //
+        ret += sizeof(buckets[0]) * buckets.size(); //the hash_table
+        for(int i=0;i<buckets.size();i++){
+            ret += sizeof(buckets[i][0]) * buckets[i].size();
+            for(int j=0;j<buckets[i].size();j++){
+                ret += sizeof(buckets[i][j]) * buckets[i][j].size();
+            }
+        }
+        ret += sizeof(uint32_t) * int64_t(nPnts);        //cm && cnt && cntidx
+
+        return ret;
+    }
+
+};

@@ -266,39 +266,20 @@ namespace mylcs
                     checkCounter++;
 				}
             };
+            const auto& tryCheckLoc = [&](int curidx, int d){
+				for(int i=curidx;i>=0 && curidx-i<nCandidates;--i){
+					int matchingIdx = getidx(d, i);
+					tryCheck(matchingIdx);
+				}
+				for(int i=curidx+1;i<nPnts && i-curidx-1<nCandidates;i++){
+					int matchingIdx = getidx(d, i);
+					tryCheck(matchingIdx);
+				}
+            };
 
-			//it could be possible to maintain only k candidates
-			const auto& addCandidates = [&](int qloc, int idx, int plen, bool isLess) {
-				// printf("    %d, %d, %d, %d\n", qloc, idx, plen, isLess);
-				// int qlocidx = idx*dim + qloc;
-				// if (!inque.isMarked(qlocidx)) {
-					// printf("%d, %d, %d, %d\n", qloc, idx, plen, isLess);
-				candidates.emplace(qloc, idx, plen, isLess);
-					// inque.mark(qlocidx);
-				// }
-			};
-			const auto& addCandidates2 = [&](int qloc, int idx) {
-				// int qlocidx = idx*dim + qloc;
-				// if (!inque.isMarked(qlocidx)) {
-				const int32_t* datap = get_datap(qloc, idx);
-				auto [plen, isLess] = match_util(queryp, datap, qloc, 0);
-				// printf("    addCandidates2   %d, %d, plen=%d, isless=%d\n", qloc, idx, plen, isLess);
-				candidates.emplace(qloc, idx, plen, isLess);
-					// inque.mark(qlocidx);
-				// }
-			};
-
-			// printf("------------\n");
-
-			//get the first location of query
-			// MyTimer::pusht();
 			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
-			addCandidates(0, curidx, lowlen, false);
-			addCandidates(0, curidx+1, highlen, true);
-			// double t0 =  MyTimer::popt();
+			tryCheckLoc(curidx, 0);
 
-			MyTimer::pusht();
-			// int potential = 1;
 			for(int d_=1;d_<nSearchLoc;d_++){
 				int d = d_*step;
 				int lowidx = next_link[d-step][curidx];
@@ -317,26 +298,9 @@ namespace mylcs
 					if(highlen!=dim){
 						highlen -= step;
 					}
-					// potential = potential*(highidx-lowidx)+1;
-					// std::tie(curidx, lowlen, highlen) = get_loc_scan(queryp, d, lowidx, lowlen, highidx, highlen);
 					std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
 				}
-				// printf("  curidx, lowlen, highlen=%d, %d, %d\n", curidx, lowlen, highlen);
-				// printf("  push %d, %d, %d, %d\n", d, curidx, lowlen, false);
-				// printf("  push %d, %d, %d, %d\n", d, curidx+1, highlen, true);
-				// addCandidates(d, curidx, lowlen, false);
-				// addCandidates(d, curidx+1, highlen, true);
-				// if(potential>=nCandidates){
-				// 	potential=1;
-				for(int i=curidx;i>=0 && curidx-i<nCandidates;--i){
-					int matchingIdx = getidx(d, i);
-					tryCheck(matchingIdx);
-				}
-				for(int i=curidx+1;i<nPnts && i-curidx-1<nCandidates;i++){
-					int matchingIdx = getidx(d, i);
-					tryCheck(matchingIdx);
-				}
-				// }
+				tryCheckLoc(curidx, d);
 			}
 		}
 	};

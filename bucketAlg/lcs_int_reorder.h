@@ -42,10 +42,10 @@ namespace mylcs
 		std::tuple<int, bool> match_util(const int32_t* x, const int32_t* y, int loc, int match);
 
 		//lowidx, lowlen, highlen
-		//assume the length of matching of low and high are lowlen and
+		//assume the length of matching of low and high are lowlen and highlen
 		std::tuple<int, int, int> get_loc_scan(const int32_t* query, int loc, int low, int lowlen, int high, int highlen);
 
-		//binary search with linear when interval is small
+		//binary search with linear search when interval is small
 		//return  (lowidx, lowlen, highlen) that q \in [lowidx, highidx) or lowidx==0 or highidx==N-1
 		std::tuple<int, int, int> get_loc_mixed(const int32_t* query, int qloc, int low, int lowlen, int high, int highlen);
 
@@ -75,10 +75,8 @@ namespace mylcs
 				}
             };
 
-			double checktime = 0.;
-			double searchtime = 0.;
             const auto& tryCheckLoc = [&](int curidx, int d){
-				MyTimer::pusht();
+				// MyTimer::pusht();
 				for(int i=curidx;i>=0 && curidx-i<scanStep;--i){
 					int matchingIdx = sorted_idx[d][i];
 					tryCheck(matchingIdx);
@@ -87,18 +85,18 @@ namespace mylcs
 					int matchingIdx = sorted_idx[d][i];
 					tryCheck(matchingIdx);
 				}
-				checktime += MyTimer::popt();
+				// checktime += MyTimer::popt();
             };
 
-			MyTimer::pusht();
+			// MyTimer::pusht();
 			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
-			searchtime += MyTimer::popt();
+			// searchtime += MyTimer::popt();
 
 			tryCheckLoc(curidx, 0);
 			// printf("cur, lowlen, highlen: %d, %d, %d, [lowidx=%d, highidx=%d]\n", curidx, lowlen, highlen, sorted_idx[0][curidx], sorted_idx[0][curidx+1]);
 			
 			for(int d=1;d<sortedLen;d++){
-				MyTimer::pusht();
+				// MyTimer::pusht();
 				int lowidx = next_link[d-1][curidx];
 				int highidx = next_link[d-1][curidx+1];
 
@@ -115,11 +113,11 @@ namespace mylcs
 					std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
 				}
 				// printf("cur, lowlen, highlen: %d, %d, %d, [lowidx=%d, highidx=%d]\n", curidx, lowlen, highlen, sorted_idx[d][curidx], sorted_idx[d][curidx+1]);
-				searchtime += MyTimer::popt();
+				// searchtime += MyTimer::popt();
 				tryCheckLoc(curidx, d);
 			}
 
-			printf("checktime=%f, searchtime=%f\n", checktime, searchtime);
+			// printf("checktime=%f, searchtime=%f\n", checktime, searchtime);
 		}
 
 

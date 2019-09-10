@@ -53,13 +53,13 @@ public:
     template <typename... Args>
     void initHasher(Args&&... args)
     {
-        hasher = make_unique<Hasher>(std::forward<Args>(args)...);
+        hasher = std::make_unique<Hasher>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     void initBucketer(Args&&... args)
     {
-        bucketer = make_unique<Bucketer>(std::forward<Args>(args)...);
+        bucketer = std::make_unique<Bucketer>(std::forward<Args>(args)...);
     }
 
     std::unique_ptr<Hasher> hasher;

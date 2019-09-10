@@ -123,8 +123,8 @@ void benchmark_multiplek(
     printf("Indexing Time: %f Seconds\n\n", indexing_time);
     fprintf(fp, "Indexing Time: %f Seconds\n\n", indexing_time);
 
-    printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
-    fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    // printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    // fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
 
     // int kMIPs[] = { 1, 2, 5, 10, 100 };
     int kMIPs[] = { 1, 2, 5, 10};
@@ -203,7 +203,7 @@ void benchmarkMinklist(
     const QueryFunc& fQuery)
 {
     const auto& fListFactory = [&](int top_k){
-        return make_unique<MinK_List>(top_k);
+        return std::make_unique<MinK_List>(top_k);
     };
     // benchmark(qn, query, results, outputFilename, fIndexerFactory, fQuery, fListFactory);
     benchmark(qn, query, results, fp, fIndexerFactory, fQuery, fListFactory);
@@ -219,7 +219,7 @@ void benchmarkMaxklist(
     const QueryFunc& fQuery)
 {
     const auto& fListFactory = [&](int top_k){
-        return make_unique<MaxK_List>(top_k);
+        return std::make_unique<MaxK_List>(top_k);
     };
     benchmark(qn, query, results, fp, fIndexerFactory, fQuery, fListFactory);
 }
@@ -235,7 +235,7 @@ void benchmarkMinklist(
     const QueryFunc& fQuery)
 {
     const auto& fListFactory = [&](int top_k){
-        return make_unique<MinK_List>(top_k);
+        return std::make_unique<MinK_List>(top_k);
     };
     // benchmark(qn, query, results, outputFilename, fIndexerFactory, fQuery, fListFactory);
     benchmark_multiplek(qn, query, results, check_ks, fp, fIndexerFactory, fQuery, fListFactory);
@@ -252,7 +252,7 @@ void benchmarkMaxklist(
     const QueryFunc& fQuery)
 {
     const auto& fListFactory = [&](int top_k){
-        return make_unique<MaxK_List>(top_k);
+        return std::make_unique<MaxK_List>(top_k);
     };
     benchmark_multiplek(qn, query, results, check_ks, fp, fIndexerFactory, fQuery, fListFactory);
 }

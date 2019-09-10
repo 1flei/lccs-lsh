@@ -10,6 +10,8 @@
 #include <functional>
 #include "../myTimer.h"
 #include <unordered_map>
+#include "../util.h"
+#include "../myndarray.h"
 
 
 namespace mylcs 

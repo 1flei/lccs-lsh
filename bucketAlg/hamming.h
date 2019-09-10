@@ -52,7 +52,7 @@ class MIH
 public:
     MIH(int d, int m) : dim(d), nChuncks(m) {
         assert(d*sizeof(SigType)*8 / m < 32);
-        mih = make_unique<myMihasher>(d*sizeof(SigType)*8, m);
+        mih = std::make_unique<myMihasher>(d*sizeof(SigType)*8, m);
         numres.resize(d*sizeof(SigType)*8 + 1);
     };
     int dim;

@@ -327,4 +327,57 @@ float calc_ratio(
 	return sqrt(ret);
 }
 
+const int PrefixTableSize = 1 << 16;
 std::array<uint8_t, PrefixTableSize> _prefix_table;
+
+bool init_prefix_table()
+{
+	for (int i = 0; i < PrefixTableSize; i++) {
+		//calculate the prefix-1 of i, since it will be run only once, implement using stupid way
+		_prefix_table[i] = 0;
+		for (int j = 0; j < 16; j++) {
+			int mask = 1 << (15 - j);
+			if (i&mask) {
+				_prefix_table[i]++;
+			}
+			else {
+				break;
+			}
+		}
+	}
+	return true;
+}
+
+int get_num_prefix(uint16_t u)
+{
+	static bool initialized = init_prefix_table();
+	return _prefix_table[u];
+}
+
+int get_num_prefix(uint32_t u)
+{
+	int a = get_num_prefix(uint16_t(u >> 16));
+	if (a != 16) {
+		return a;
+	}
+	int b = get_num_prefix(uint16_t(u & 0xffff));
+	return a + b;
+}
+
+int get_num_prefix(uint64_t u)
+{
+	int a = get_num_prefix(uint16_t(u >> 48));
+	if (a != 16) {
+		return a;
+	}
+	int b = get_num_prefix(uint16_t((u >> 32) & 0xffff));
+	if (b != 16) {
+		return a + b;
+	}
+	int c = get_num_prefix(uint16_t((u >> 16) & 0xffff));
+	if (c != 16) {
+		return a + b + c;
+	}
+	int d = get_num_prefix(uint16_t(u & 0xffff));
+	return a + b + c + d;
+}
