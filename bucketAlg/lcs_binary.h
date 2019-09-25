@@ -14,7 +14,7 @@
 #include "../myndarray.h"
 
 
-namespace mylcs 
+namespace mylccs 
 {//LCS by sort
 	class LCS_SORT
 	{

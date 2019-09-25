@@ -1,4 +1,5 @@
 SET(CMAKE_CXX_COMPILER /usr/bin/g++-8)
+# SET(CMAKE_CXX_COMPILER /usr/bin/clang++-9)
 PROJECT(LCSB)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
@@ -7,7 +8,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-sign-compare")
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -20,13 +22,15 @@ endif()
 FIND_PACKAGE(GSL) 
 include_directories(${GSL_INCLUDE_DIR} )
 include_directories("lshkit-0.2.1/include")
+include_directories("FALCONN/src/include")
+include_directories("FALCONN/external/simple-serializer")
+include_directories("FALCONN/external/eigen")
 
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "pri_queue.cc"
                 "util.cpp"
                 "register.cpp"
-                "myndarray.cc"
                 "hashAlg/srp.cpp"
                 "hashAlg/pivots.cpp"
                 "bucketAlg/lcs.cpp"
@@ -34,10 +38,11 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "app/composible_index.cpp"
                 "app/ground_truth.cc"
                 "app/mplsh.cpp"
+                "app/falconn.cpp"
 
                 "bucketAlg/lcs_test.cpp"
               )
 
 TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} 
   ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
-  GSL::gsl GSL::gslcblas)
+  GSL::gsl GSL::gslcblas pthread)

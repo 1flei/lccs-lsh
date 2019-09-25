@@ -33,11 +33,11 @@ public:
         assert(codes.lens[1] == L);
 
         // buckets.reserve(L);
-        codesp = codes.to_ptr();
+        // codesp = codes.to_ptr();
         //build hash table based on codes
         for(int i=0;i<nPnts;i++){
             for(int j=0;j<L;j++){
-                SigType codeij = codesp[i][j];
+                SigType codeij = codes[i][j];
                 buckets[j][codeij].push_back(i);
             }
         }

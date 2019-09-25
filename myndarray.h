@@ -6,26 +6,21 @@
 template<int D, class Scalar> 
 class NDArrayView;
 
-// template<int D, class Scalar>
-// struct NDArrayViewGivenD
-// {
-//     typedef NDArrayView<D, Scalar> ValType;
-// };
-
-// template<class Scalar>
-// struct NDArrayViewGivenD<0, Scalar>
-// {
-//     typedef float& ValType;
-// };
+//interface
+// operator[]
+// to_ptr()
+// constructor/make_array
+// foreach loop (begin/end)
 
 //a light-weighted compact n-dimensional array
+//for D>=3 
 template<int D, class Scalar> 
 class NDArray
 {
 public:
-    NDArray(): lens({0}), buffer(nullptr), buffer_raw(nullptr) {}
+    NDArray(): lens({0}), buffer(nullptr), bufferRaw(nullptr) {}
 
-    NDArray(const std::array<size_t, D> &dims):lens(dims), buffer_raw(nullptr){
+    NDArray(const std::array<size_t, D> &dims):lens(dims), bufferRaw(nullptr){
         elemLens[D] = 1;
         for(int i=D-1;i>=0;--i){
             elemLens[i] = elemLens[i+1]*lens[i];
@@ -35,8 +30,8 @@ public:
 
     ~NDArray(){
         delete[] buffer;
-        if(buffer_raw!=nullptr){
-            delete[] buffer_raw;
+        if(bufferRaw!=nullptr){
+            delete[] bufferRaw;
         }
     }
 
@@ -53,9 +48,9 @@ public:
             delete[] buffer;
         }
         buffer = new Scalar[elemLens[0]];
-        if(buffer_raw!=nullptr){
-            delete[] buffer_raw;
-            buffer_raw = nullptr;
+        if(bufferRaw!=nullptr){
+            delete[] bufferRaw;
+            bufferRaw = nullptr;
         }
     }
 
@@ -65,9 +60,6 @@ public:
 
     std::array<size_t, D> lens;
     std::array<size_t, D+1> elemLens;
-
-    template<class F, class ...Args>
-    void for_enumerate2(const F& f);
 
     Scalar* begin(){
         return buffer;
@@ -80,22 +72,22 @@ public:
     using ConstPtrType = typename NDArrayView<D-1, Scalar>::ConstPtrType*;
 
     PtrType to_ptr(){
-        if(buffer_raw==nullptr){
+        if(bufferRaw==nullptr){
             int size = 0;
             int curp = 1;
             for(int i=0;i<D-1;i++){
                 size += curp*lens[i];
                 curp *= lens[i];
             }
-            buffer_raw = new void*[size];
+            bufferRaw = new void*[size];
 
             size = 0;
             curp = 1;
             for(int i=0;i<D-2;i++){
-                void** basei = buffer_raw+size;
+                void** basei = bufferRaw+size;
                 size += curp*lens[i];
                 curp *= lens[i];
-                void** baseip1 = buffer_raw+size;
+                void** baseip1 = bufferRaw+size;
 
                 for(int j=0;basei+j<baseip1;j++){
                     basei[j] = (void*)(baseip1+lens[i+1]*j);
@@ -103,13 +95,13 @@ public:
             }
 
             //for second last dimension
-            void** basei = buffer_raw+size;
-            void** baseip1 = buffer_raw+size+curp*lens[D-2];
+            void** basei = bufferRaw+size;
+            void** baseip1 = bufferRaw+size+curp*lens[D-2];
             for(int j=0;basei+j<baseip1;j++){
                 basei[j] = (void*)(buffer+lens[D-1]*j);
             }
         }
-        return (PtrType)buffer_raw;
+        return (PtrType)bufferRaw;
     }
 
     inline ConstPtrType to_cptr(){
@@ -119,17 +111,204 @@ public:
     int64_t get_memory_usage()
     {
         int64_t ret = int64_t(sizeof(*this)) + int64_t(elemLens[0])*int64_t(sizeof(Scalar));
-        // if(buffer_raw != nullptr){
-        //     ret += elemLens[0] / lens[D-1] * sizeof(Scalar*);
-        // }
         return ret;
     }
 
 protected:
     Scalar* buffer;
-    void** buffer_raw;       //will be used only when convert to raw_ptr is called
+    void** bufferRaw;       //will be used only when convert to raw_ptr is called
 };
 
+//partial specification
+template<class Scalar> 
+class NDArray<0, Scalar>
+{
+public:
+    using PtrType =  Scalar&;
+    using ConstPtrType = const Scalar&;
+};
+template<class Scalar> 
+class NDArray<1, Scalar>
+{
+public:
+    NDArray(): lens({0}), buffer(nullptr) {}
+
+    static const int D = 1;
+
+    NDArray(const std::array<size_t, D> &dims):lens(dims){
+        elemLens[D] = 1;
+        elemLens[0] = lens[0];
+        buffer = new Scalar[elemLens[0]];
+    }
+    // NDArray(size_t dim): lens({dim}){
+    //     elemLens[D] = 1;
+    //     elemLens[0] = lens[0];
+    //     buffer = new Scalar[elemLens[0]];
+    // }
+
+    ~NDArray(){
+        delete[] buffer;
+    }
+
+    void resize(const std::array<size_t, D> &dims){
+        for(int i=0;i<D;i++){
+            lens[i] = dims[i];
+        }
+        elemLens[D] = 1;
+        for(int i=D-1;i>=0;--i){
+            elemLens[i] = elemLens[i+1]*lens[i];
+        }
+
+        if(buffer){
+            delete[] buffer;
+        }
+        buffer = new Scalar[elemLens[0]];
+    }
+    void resize(size_t dim){
+        resize({dim});
+    }
+
+    Scalar& operator[](int i){
+        return buffer[i];
+    } 
+
+    std::array<size_t, D> lens;
+    std::array<size_t, D+1> elemLens;
+
+    Scalar* begin(){
+        return buffer;
+    }
+    Scalar* end(){
+        return buffer+elemLens[0];
+    }
+
+    using PtrType =  Scalar*;
+    using ConstPtrType = const Scalar*;
+
+    PtrType to_ptr(){
+        return (PtrType)buffer;
+    }
+
+    inline ConstPtrType to_cptr(){
+        return (ConstPtrType) to_ptr();
+    }
+
+    int64_t get_memory_usage()
+    {
+        int64_t ret = int64_t(sizeof(*this)) + int64_t(elemLens[0])*int64_t(sizeof(Scalar));
+        return ret;
+    }
+protected:
+    Scalar* buffer;
+};
+//D=2
+template<class Scalar> 
+class NDArray<2, Scalar>
+{
+public:
+    static const int D = 2;
+    NDArray(): lens({0}), buffer(nullptr), bufferRaw(nullptr) {}
+
+    NDArray(const std::array<size_t, D> &dims):lens(dims), bufferRaw(nullptr){
+        elemLens[D] = 1;
+        for(int i=D-1;i>=0;--i){
+            elemLens[i] = elemLens[i+1]*lens[i];
+        }
+        buffer = new Scalar[elemLens[0]];
+    }
+
+    ~NDArray(){
+        delete[] buffer;
+        if(bufferRaw!=nullptr){
+            delete[] bufferRaw;
+        }
+    }
+
+    void resize(const std::array<size_t, D> &dims){
+        for(int i=0;i<D;i++){
+            lens[i] = dims[i];
+        }
+        elemLens[D] = 1;
+        for(int i=D-1;i>=0;--i){
+            elemLens[i] = elemLens[i+1]*lens[i];
+        }
+
+        if(buffer){
+            delete[] buffer;
+        }
+        buffer = new Scalar[elemLens[0]];
+        if(bufferRaw!=nullptr){
+            delete[] bufferRaw;
+            bufferRaw = nullptr;
+        }
+    }
+
+    Scalar* operator[](int i){
+        return (Scalar*)(buffer+i*elemLens[1]);
+    } 
+
+    std::array<size_t, D> lens;
+    std::array<size_t, D+1> elemLens;
+
+    Scalar* begin(){
+        return buffer;
+    }
+    Scalar* end(){
+        return buffer+elemLens[0];
+    }
+
+    using PtrType =  typename NDArray<D-1, Scalar>::PtrType*;
+    using ConstPtrType = typename NDArray<D-1, Scalar>::ConstPtrType*;
+
+    PtrType to_ptr(){
+        if(bufferRaw==nullptr){
+            int size = 0;
+            int curp = 1;
+            for(int i=0;i<D-1;i++){
+                size += curp*lens[i];
+                curp *= lens[i];
+            }
+            bufferRaw = new void*[size];
+
+            size = 0;
+            curp = 1;
+            for(int i=0;i<D-2;i++){
+                void** basei = bufferRaw+size;
+                size += curp*lens[i];
+                curp *= lens[i];
+                void** baseip1 = bufferRaw+size;
+
+                for(int j=0;basei+j<baseip1;j++){
+                    basei[j] = (void*)(baseip1+lens[i+1]*j);
+                }
+            }
+
+            //for second last dimension
+            void** basei = bufferRaw+size;
+            void** baseip1 = bufferRaw+size+curp*lens[D-2];
+            for(int j=0;basei+j<baseip1;j++){
+                basei[j] = (void*)(buffer+lens[D-1]*j);
+            }
+        }
+        return (PtrType)bufferRaw;
+    }
+
+    inline ConstPtrType to_cptr(){
+        return (ConstPtrType) to_ptr();
+    }
+
+    int64_t get_memory_usage()
+    {
+        int64_t ret = int64_t(sizeof(*this)) + int64_t(elemLens[0])*int64_t(sizeof(Scalar));
+        return ret;
+    }
+
+protected:
+    Scalar* buffer;
+    void** bufferRaw;       //will be used only when convert to raw_ptr is called
+};
+
+//for D>=3 
 template<int D, class Scalar> 
 class NDArrayView
 {
@@ -151,6 +330,14 @@ public:
 protected:
     Scalar* p;
     size_t* elemLensp;
+};
+
+template<class Scalar> 
+class NDArrayView<0, Scalar>
+{
+public:
+    typedef Scalar PtrType;
+    typedef const Scalar ConstPtrType;
 };
 
 template<class Scalar> 
@@ -180,25 +367,77 @@ protected:
 };
 
 template<class Scalar> 
-class NDArrayView<0, Scalar>
+class NDArrayView<2, Scalar>
 {
 public:
-    typedef Scalar PtrType;
-    typedef const Scalar ConstPtrType;
+    static const int D=2; 
+    
+    Scalar* operator[](int i){
+        return p+(*elemLensp)*i;
+    }
+    NDArrayView(Scalar *p, size_t *elemLensp):p(p), elemLensp(elemLensp){}
+
+    typedef typename NDArrayView<D-1, Scalar>::PtrType* PtrType;
+    typedef typename NDArrayView<D-1, Scalar>::ConstPtrType* ConstPtrType;
+
+    Scalar* begin(){
+        return p;
+    }
+    Scalar* end(){
+        return p+*(elemLensp-1);
+    }
+protected:
+    Scalar* p;
+    size_t* elemLensp;
 };
 
-NDArray<1, double> make_darray(size_t sz0);
-NDArray<2, double> make_darray(size_t sz0, size_t sz1);
-NDArray<3, double> make_darray(size_t sz0, size_t sz1, size_t sz2);
-NDArray<4, double> make_darray(size_t sz0, size_t sz1, size_t sz2, size_t sz3);
+inline NDArray<1, double> make_darray(size_t sz0)
+{
+    return NDArray<1, double>({sz0});
+}
+inline NDArray<2, double> make_darray(size_t sz0, size_t sz1)
+{
+    return NDArray<2, double>({sz0, sz1});
+}
+inline NDArray<3, double> make_darray(size_t sz0, size_t sz1, size_t sz2)
+{
+    return NDArray<3, double>({sz0, sz1, sz2});
+}
+inline NDArray<4, double> make_darray(size_t sz0, size_t sz1, size_t sz2, size_t sz3)
+{
+    return NDArray<4, double>({sz0, sz1, sz2, sz3});
+}
 
-NDArray<1, float> make_farray(size_t sz0);
-NDArray<2, float> make_farray(size_t sz0, size_t sz1);
-NDArray<3, float> make_farray(size_t sz0, size_t sz1, size_t sz2);
-NDArray<4, float> make_farray(size_t sz0, size_t sz1, size_t sz2, size_t sz3);
+inline NDArray<1, float> make_farray(size_t sz0)
+{
+    return NDArray<1, float>({sz0});
+}
+inline NDArray<2, float> make_farray(size_t sz0, size_t sz1)
+{
+    return NDArray<2, float>({sz0, sz1});
+}
+inline NDArray<3, float> make_farray(size_t sz0, size_t sz1, size_t sz2)
+{
+    return NDArray<3, float>({sz0, sz1, sz2});
+}
+inline NDArray<4, float> make_farray(size_t sz0, size_t sz1, size_t sz2, size_t sz3)
+{
+    return NDArray<4, float>({sz0, sz1, sz2, sz3});
+}
 
-NDArray<1, int> make_iarray(size_t sz0);
-NDArray<2, int> make_iarray(size_t sz0, size_t sz1);
-NDArray<3, int> make_iarray(size_t sz0, size_t sz1, size_t sz2);
-NDArray<4, int> make_iarray(size_t sz0, size_t sz1, size_t sz2, size_t sz3);
-
+inline NDArray<1, int> make_iarray(size_t sz0)
+{
+    return NDArray<1, int>({sz0});
+}
+inline NDArray<2, int> make_iarray(size_t sz0, size_t sz1)
+{
+    return NDArray<2, int>({sz0, sz1});
+}
+inline NDArray<3, int> make_iarray(size_t sz0, size_t sz1, size_t sz2)
+{
+    return NDArray<3, int>({sz0, sz1, sz2});
+}
+inline NDArray<4, int> make_iarray(size_t sz0, size_t sz1, size_t sz2, size_t sz3)
+{
+    return NDArray<4, int>({sz0, sz1, sz2, sz3});
+}

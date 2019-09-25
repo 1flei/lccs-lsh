@@ -79,6 +79,13 @@ class MovieLens:
         self.d  = 150
         self.name = 'MovieLens'
 
+class Glove:
+    def __init__(self):
+        self.n = 2196017-1000
+        self.qn = 1000
+        self.d  = 300
+        self.name = 'glove'
+
 class Synthetic:
     def __init__(self):
         self.n = 1000000

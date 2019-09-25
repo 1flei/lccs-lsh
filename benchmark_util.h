@@ -123,8 +123,8 @@ void benchmark_multiplek(
     printf("Indexing Time: %f Seconds\n\n", indexing_time);
     fprintf(fp, "Indexing Time: %f Seconds\n\n", indexing_time);
 
-    // printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
-    // fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
 
     // int kMIPs[] = { 1, 2, 5, 10, 100 };
     int kMIPs[] = { 1, 2, 5, 10};

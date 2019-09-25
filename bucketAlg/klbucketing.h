@@ -27,14 +27,14 @@ public:
     void build(NDArray<2, SigType>& codes)
     {
         assert(codes.lens[1] == K * L);
-        codesp = codes.to_ptr();
+        // codesp = codes.to_ptr();
         //build hash table based on codes
         for (int i = 0; i < nPnts; i++) {
             for (int j = 0; j < L; j++) {
                 uint64_t hashcode = 0;
                 for (int k = 0; k < K; k++) {
                     int didx = j * K + k;
-                    hashcode = hash_combine(hashcode, uint64_t(codesp[i][didx]));
+                    hashcode = hash_combine(hashcode, uint64_t(codes[i][didx]));
                 }
 
                 uint32_t hashcode32 = (hashcode>>7);
@@ -204,7 +204,6 @@ public:
         , K(K)
         , cm(nPnts)
     {
-        //using pertubation hash to combine hash signatures
         assert(K<32);
         for(int i=0;i<L;i++){
             buckets[i].resize(1<<K);
@@ -216,16 +215,26 @@ public:
     int K;
     CountMarker cm;
 
+    uint64_t get_sig_between(const uint64_t* v, int s, int e)
+    {
+        assert(e-s<64 && e-s>0);
+
+        uint64_t mask = (1<<(e-s))-1;
+        int loc = s/64;
+        int shift = s-loc*64;
+        return (v[loc]>>shift)&mask;
+    }
+
     // void build(const std::vector<std::vector<SigType> > &codes) {
     void build(NDArray<2, uint64_t>& codes)
     {
-        assert(codes.lens[1] == K * L);
+        assert(codes.lens[1] == (K*L+63)/64);
         // codesp = codes.to_ptr();
         //build hash table based on codes
         for (int i = 0; i < nPnts; i++) {
             for (int j = 0; j < L; j++) {
-                uint32_t hashcode32 = hc.hash_combine(&codes[i][j*K]);
-                buckets[j][hashcode32].push_back(i);
+                uint32_t codeij = get_sig_between(codes[i], j*K, (j+1)*K);
+                buckets[j][codeij].push_back(i);
             }
         }
     }
@@ -233,9 +242,8 @@ public:
     void insert(int i, std::vector<uint64_t>& codei)
     {
         for (int j = 0; j < L; j++) {
-            uint32_t hashcode32 = hc.hash_combine(&codei[j*K]);
-            // assert(hashcode32 < buckets[j].size());
-            buckets[j][hashcode32].push_back(i);
+            uint32_t codeij = get_sig_between(&codei[0], j*K, (j+1)*K);
+            buckets[j][codeij].push_back(i);
         }
     }
 
@@ -244,8 +252,8 @@ public:
     {
         cm.clear();
         for (int j = 0; j < L; j++) {
-            uint32_t hashcode32 = hc.hash_combine(&qcode[j*K]);
-            for (int idx : buckets[j][hashcode32]) {
+            uint32_t codeij = get_sig_between(&qcode[0], j*K, (j+1)*K);
+            for (int idx : buckets[j][codeij]) {
                 if (!cm.isMarked(idx)) {
                     f(idx);
                     cm.mark(idx);

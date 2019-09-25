@@ -1,18 +1,17 @@
-#include "mplsh.h"
+#include "falconn.h"
 
 using namespace std;
 using namespace MyCallbackRegister;
 
-bool MPLSH_LSHKIT_REGISTED = registerCallback("mplsh_lshkit",
-		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+bool FALCONN_REGISTED = registerCallback("falconn",
+		"n qn d nHashBits L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
 	int qn = algAs<int>("qn");
 	int d = algAs<int>("d");
-	int K = algAs<int>("K");
+	int nBits = algAs<int>("nHashBits");
     int L = algAs<int>("L");
-    // int T = algAs<int>("T");
-    double r = algAs<double>("r");
+
 	const float** data = algAs<const float**>("dataset");
 	const float** query = algAs<const float**>("queryset");
 	const Result** ground_truth = algAs<const Result**>("ground_truth");
@@ -21,21 +20,21 @@ bool MPLSH_LSHKIT_REGISTED = registerCallback("mplsh_lshkit",
 
 
     // typedef MPLSH Index;
-    typedef MPLSH_LSHKIT Index;
+    typedef FALCONN_INDEX Index;
     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
 
     const auto& fif = [&](){
-		auto index = make_unique<Index>(n, d, K, L, r);
+		auto index = make_unique<Index>(n, d, L, nBits);
         index->build(data);
         return index;
     };
 
-    fprintf(fp.get(), "mplsh_lshkit  r=%f, K=%d, L=%d\n", r, K, L);
-    std::vector<int> nProbess = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
+    fprintf(fp.get(), "falconn  nBits=%d, L=%d\n", nBits, L);
+    std::vector<int> nProbess = {1, 2, 4, 8, 16, 32};
 
     const auto& fq = [&](Index &index, int k, int nProbes, const float* queryi, MinK_List* list) {
         // int nCandidates = k+K*M;
-        index.query(nProbes, queryi, list);
+        index.query(nProbes*L, queryi, list);
     };
 
     benchmarkMinklist(qn, query, ground_truth, nProbess, fp.get(), fif, fq);

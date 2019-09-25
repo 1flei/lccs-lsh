@@ -8,16 +8,16 @@
 #include <cinttypes>
 #include <array>
 #include <functional>
-#include "../myTimer.h"
+// #include "../myTimer.h"
 #include <unordered_map>
 #include "../myndarray.h"
 
-namespace mylcs 
+namespace mylccs 
 {//LCS by sort
-	class LCS_SORT_INT
+	class LCCS_SORT_INT
 	{
 	public:
-		LCS_SORT_INT(int dim, int step)
+		LCCS_SORT_INT(int dim, int step)
             :dim(dim), step(step)
 		{
 			// assert(dim%64==0);
@@ -246,14 +246,15 @@ namespace mylcs
 			return ret;
 		}
 
+		//using simple scan strategy (high data locality)
 		template<typename F>
 		void for_candidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
 		{
 			const int32_t* queryp = (const int32_t*)&query[0];
 
-			std::vector<CandidateLoc> pool;
-			pool.reserve(nSearchLoc * 2 + nCandidates*nSearchLoc);
-			std::priority_queue<CandidateLoc, std::vector<CandidateLoc>> candidates(std::less<CandidateLoc>() , std::move(pool));
+			// std::vector<CandidateLoc> pool;
+			// pool.reserve(nSearchLoc * 2 + nCandidates*nSearchLoc);
+			// std::priority_queue<CandidateLoc, std::vector<CandidateLoc>> candidates(std::less<CandidateLoc>() , std::move(pool));
 			
             // inque.clear();
             checked.clear();
@@ -285,62 +286,22 @@ namespace mylcs
 				int lowidx = next_link[d-step][curidx];
 				int highidx = next_link[d-step][curidx+1];
 
-				// const auto& sorted_idx_d = sorted_idx[d];
-				// printf("  low, lowlen, high, highlen = %d, %d, %d, %d\n", lowidx, lowlen, highidx, highlen);
-
-				if(lowlen < step || highlen < step){
-					// potential = nCandidates;
-					std::tie(curidx, lowlen, highlen) = get_loc(queryp, d);
+				if(lowlen < step){
+					lowlen = 0;
+					lowidx = 0;
 				} else{
-					if(lowlen!=dim){
-						lowlen -= step;
-					}
-					if(highlen!=dim){
-						highlen -= step;
-					}
-					std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
+					lowlen -= step;
 				}
+
+				if(highlen < step){
+					highlen = 0;
+					highidx = nPnts-1;
+				} else{
+					highidx -= step;
+				}
+				std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
 				tryCheckLoc(curidx, d);
 			}
 		}
 	};
-
-
-	class LCCS_LSH
-	{
-	public:
-		LCCS_LSH(int M, int step)
-			:M(M), step(step), lccs(M*step, step)
-		{
-			
-		}
-
-		int M;
-		int step;
-		int nPnts;
-
-		// NDArray<2, int32_t> combined_codes;
-		// HashCombinator<int32_t> hc;
-
-        void build(NDArray<2, int32_t> &codes)
-        {
-			nPnts = codes.lens[0];
-
-			lccs.build(codes);
-        }
-		LCS_SORT_INT lccs;
-
-
-		int64_t get_memory_usage()
-		{
-			return lccs.get_memory_usage();
-		}
-
-		template<typename F>
-		void for_candidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
-		{
-			lccs.for_candidates(nCandidates, query, f);
-		}
-	};
-
 }

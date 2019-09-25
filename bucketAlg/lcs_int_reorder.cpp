@@ -1,6 +1,6 @@
 #include "lcs_int_reorder.h"
 
-using namespace mylcs;
+using namespace mylccs;
 
 LCCS_LSH_REORDER::LCCS_LSH_REORDER(int M, int step)
     :M(M), step(step)

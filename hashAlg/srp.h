@@ -31,6 +31,12 @@ public:
 
     int dim, K;
     int sigdim;
+
+    int64_t get_memory_usage()
+    {
+        return int64_t(sizeof(*this)) + sizeof(p) + sizeof(Scalar)*p.capacity();
+    }
+
 protected:
     std::vector<Scalar> p;
 };

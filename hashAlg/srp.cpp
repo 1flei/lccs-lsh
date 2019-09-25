@@ -62,10 +62,10 @@ void SRP::getSig(const Scalar* data, SigType* ret)
 SRPCompact::SRPCompact(int d, int K)
     : dim(d)
     , K(K)
-    , sigdim(K/64)
+    , sigdim((K+63)/64)
     , p(K * d)
 {
-    assert(d > 0 && K > 0 && K%64==0);
+    assert(d > 0 && K > 0);
 
     std::normal_distribution<double> normalDistribution(0.);
     std::random_device rd;
@@ -81,8 +81,8 @@ SRPCompact::~SRPCompact()
 
 std::vector<uint64_t> SRPCompact::getSig(const Scalar* data)
 {
-    std::vector<uint64_t> ret(K/64);
-    for (int i = 0; i < K/64; i++) {
+    std::vector<uint64_t> ret(sigdim);
+    for (int i = 0; i < sigdim; i++) {
         uint64_t sigi = 0;
         for (int j = 0; j < 64; j++) {
             int idx = (i * 64 + j) * dim;
@@ -100,7 +100,7 @@ std::vector<uint64_t> SRPCompact::getSig(const Scalar* data)
 
 void SRPCompact::getSig(const Scalar* data, uint64_t* ret)
 {
-    for (int i = 0; i < K/64; i++) {
+    for (int i = 0; i < sigdim; i++) {
         uint64_t sigi = 0;
         for (int j = 0; j < 64; j++) {
             int idx = (i * 64 + j) * dim;

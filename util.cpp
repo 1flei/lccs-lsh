@@ -112,7 +112,7 @@ int read_data_binary(						// read data/query set from disk
 	}
 
 	int i   = 0;
-	int tmp = -1;
+	// int tmp = -1;
 	while (!feof(fp) && i < n) {
 		fread(data[i], sizeof(float), d, fp);
 		++i;

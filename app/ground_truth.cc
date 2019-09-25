@@ -3,7 +3,7 @@
 using namespace std;
 
 bool ground_truth_angle_registed = MyCallbackRegister::registerCallback("ground_truth_angle", 
-		"n qn d dataset_filename queryset_filename output_filename", [&](){
+		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
 	int qn = algAs<int>("qn");
@@ -16,7 +16,7 @@ bool ground_truth_angle_registed = MyCallbackRegister::registerCallback("ground_
 });
 
 bool ground_truth_cosine_similarity_registed = MyCallbackRegister::registerCallback("ground_truth_cosine_similarity", 
-		"n qn d dataset_filename queryset_filename output_filename", [&](){
+		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
 	int qn = algAs<int>("qn");
@@ -29,7 +29,7 @@ bool ground_truth_cosine_similarity_registed = MyCallbackRegister::registerCallb
 });
 
 bool ground_truth_l2_registed = MyCallbackRegister::registerCallback("ground_truth_l2", 
-		"n qn d dataset_filename queryset_filename output_filename", [&](){
+		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
 	int qn = algAs<int>("qn");

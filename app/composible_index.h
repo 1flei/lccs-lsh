@@ -21,6 +21,7 @@
 #include "../hashAlg/pivots.h"
 #include "../hashAlg/srp.h"
 #include "../hashAlg/e2eigen.h"
+#include "../hashAlg/polytope.h"
 
 //for illustration only
 class HasherInterface {
@@ -136,12 +137,12 @@ public:
         assert(hasher && bucketer);
         //code
         int64_t codes_usage = codes.get_memory_usage();
-        printf("codes_usage=%d\n", codes_usage);
+        printf("codes_usage=%ld\n", codes_usage);
         int64_t hash_usage = hasher->get_memory_usage();
-        printf("hash_usage=%d\n", hash_usage);
+        printf("hash_usage=%ld\n", hash_usage);
         //bucket index
         int64_t bucket_usage = bucketer->get_memory_usage();
-        printf("bucket_usage=%d\n", bucket_usage);
+        printf("bucket_usage=%ld\n", bucket_usage);
 
         return codes_usage + hash_usage + bucket_usage;
     }

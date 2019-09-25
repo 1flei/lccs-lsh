@@ -13,7 +13,7 @@
 #include "../myndarray.h"
 #include "../util.h"
 
-namespace mylcs 
+namespace mylccs 
 {
 
 	class LCCS_LSH_REORDER
@@ -22,13 +22,18 @@ namespace mylcs
 		LCCS_LSH_REORDER(int M, int step);
         void build(NDArray<2, int32_t> &hashCodes);
 
+		inline int32_t get_dim_idx(int dimidx)
+		{
+			return reorders[dimidx%reorderLen];
+		}
+
 		inline int32_t get_hash_code(int pntidx, int dimidx)
 		{
-			return codep[pntidx][reorders[dimidx%reorderLen]];
+			return codep[pntidx][get_dim_idx(dimidx)];
 		}
 		inline int32_t get_hash_code(const int32_t* rawp, int dimidx)
 		{
-			return rawp[reorders[dimidx%reorderLen]];
+			return rawp[get_dim_idx(dimidx)];
 		}
 
 		//match_util :: [sigs] a-> [sigs] b->int loc-> (int, bool)
