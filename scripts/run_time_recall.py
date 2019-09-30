@@ -226,17 +226,18 @@ def run_falconn(datasets=datasets, Ls=[10, 20, 30, 40, 50], nBitss=[18], method=
                 os.system(cmd)
 
 if __name__ == '__main__':
-    datasets = [Sift()]
+    # datasets = [Sift()]
     # datasets = [Glove()]
+    datasets = [Trevi()]
 
     # run_lcsb(datasets=datasets, Ls=[8, 13, 21, 34, 55, 89, 144, 233], method='lcsb_reorder')
-    # run_lcsb(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512], method='lcsb', step=1)
-    # run_e2lsh(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
+    run_lcsb(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512], method='lcsb', step=1)
+    run_e2lsh(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
+    run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], rratio=1, method='mplsh_lshkit')
     # run_e2_srp(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
-    run_lccs_polytope(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512, 1024], step=1)
-    # run_e2_polytope(datasets=datasets, Ls=[50, 100, 150, 200], Ks=list(range(2, 9)))
     # run_c2lsh(datasets=datasets, Ls=[32, 64, 128, 256, 512])
-    # run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], rratio=1, method='mplsh_lshkit')
 
     # run_lcsb(datasets=datasets, Ls=[32, 64, 128, 256, 512, 1024, 2048, 4096])
-    # run_falconn(datasets=datasets, nBitss=[14, 18, 22])
+    run_lccs_polytope(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512, 1024], step=1)
+    run_falconn(datasets=datasets, nBitss=[18])
+    run_e2_polytope(datasets=datasets, Ls=[50, 100, 150, 200], Ks=list(range(2, 9)))

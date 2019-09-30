@@ -14,7 +14,7 @@ def to_binary(dataset_name):
         
         for row in reader:
             # print(row)
-            x = list(map(lambda x:float(x), row[1:]))
+            x = [float(ri) for ri in row[1:] if ri!='' ]
 
             fout.write(struct.pack('f'*len(x), *x))          
     with open(inQueryFilename, 'r') as fin, open(outQueryFilename, 'wb') as fout:
@@ -22,7 +22,7 @@ def to_binary(dataset_name):
         
         for row in reader:
             # print(row)
-            x = list(map(lambda x:float(x), row[1:]))
+            x = [float(ri) for ri in row[1:] if ri!='' ]
 
             fout.write(struct.pack('f'*len(x), *x))           
 
@@ -30,4 +30,6 @@ def to_binary(dataset_name):
 # to_binary('Mnist')
 # to_binary('Sift')
 # to_binary('Gist')
-to_binary('Mnist784')
+# to_binary('Mnist784')
+# to_binary('glove')
+to_binary('Trevi')

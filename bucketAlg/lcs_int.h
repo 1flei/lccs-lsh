@@ -278,6 +278,8 @@ namespace mylccs
 				}
             };
 
+			// printf("new q!!!!\n\n");
+
 			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
 			tryCheckLoc(curidx, 0);
 
@@ -289,16 +291,17 @@ namespace mylccs
 				if(lowlen < step){
 					lowlen = 0;
 					lowidx = 0;
-				} else{
+				} else if(lowlen!=dim){
 					lowlen -= step;
 				}
 
 				if(highlen < step){
 					highlen = 0;
 					highidx = nPnts-1;
-				} else{
-					highidx -= step;
+				} else if(highlen!=dim){
+					highlen -= step;
 				}
+				// printf("  lidx, llen, hidx, hlen=%d, %d, %d, %d\n", lowidx, lowlen, highidx, highlen);
 				std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
 				tryCheckLoc(curidx, d);
 			}

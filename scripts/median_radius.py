@@ -28,4 +28,6 @@ def read(dataset_name):
 # read('Mnist')
 # read('Sift')
 # read('Gist')
-read('Mnist784')
+# read('Mnist784')
+# read('glove')
+read('Trevi')

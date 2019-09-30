@@ -24,7 +24,7 @@ public:
 
     PolytopeHasher(int vector_dim,
                 int l, int num_rotations=1,
-                int last_cp_dim=8, int seed=666)
+                int last_cp_dim=32, int seed=666)
         :dim(vector_dim), 
          sigdim(l), 
          num_rotations(num_rotations), 

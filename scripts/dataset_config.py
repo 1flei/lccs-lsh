@@ -27,6 +27,8 @@ class Trevi:
         self.qn = 1000
         self.d = 4096
         self.name = 'Trevi'
+
+        self.r = 1600
         
 class Netflix:
     def __init__(self):
@@ -85,6 +87,7 @@ class Glove:
         self.qn = 1000
         self.d  = 300
         self.name = 'glove'
+        self.r =  8
 
 class Synthetic:
     def __init__(self):

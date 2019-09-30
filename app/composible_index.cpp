@@ -159,51 +159,51 @@ bool E2LSH_REGISTED = registerCallback("e2lsh",
     benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
 });
 
-bool MPLSH_REGISTED = registerCallback("mplsh",
-		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
-	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-    int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+// bool MPLSH_REGISTED = registerCallback("mplsh",
+// 		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+// 	using namespace MyCallbackRegister;
+// 	int n = algAs<int>("n");
+// 	int qn = algAs<int>("qn");
+// 	int d = algAs<int>("d");
+// 	int K = algAs<int>("K");
+//     int L = algAs<int>("L");
+//     double r = algAs<double>("r");
+// 	const float** data = algAs<const float**>("dataset");
+// 	const float** query = algAs<const float**>("queryset");
+// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
+// 	string output_filename = algAs<string>("output_filename");
+//     // int checked_candidate = algAs<int>("checked_candidate");
 
 
-    typedef ComposibleIndex<E2Eigen, MYMPLSH> Index;
-    std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
+//     typedef ComposibleIndex<E2Eigen, MYMPLSH> Index;
+//     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
 
-    const auto& fif = [&](){
-		auto index = make_unique<Index>();
-        index->initHasher(d, K*L, r);
-        index->initBucketer(n, L, K);
-        index->inc_build(n, data);
-        return index;
-    };
+//     const auto& fif = [&](){
+// 		auto index = make_unique<Index>();
+//         index->initHasher(d, K*L, r);
+//         index->initBucketer(n, L, K);
+//         index->inc_build(n, data);
+//         return index;
+//     };
 
-    fprintf(fp.get(), "mplsh  r=%f, K=%d L=%d\n", r, K, L);
-    // std::vector<int> checked_candidates = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
-    std::vector<int> checked_candidates;
-    for(int check_k = 1; check_k <= 64; check_k*=2){
-        checked_candidates.push_back(check_k);
-    }
-    const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
-        // int nCandidates = k+K*M;
-        int nCandidates = k + checked_candidate;
-        const auto& f = [&](int idx){
-            float angle = calc_l2_dist(d, data[idx], queryi);
-            list->insert(angle, idx + 1);
-        };
-        index.query(nCandidates, queryi, f);
-    };
+//     fprintf(fp.get(), "mplsh  r=%f, K=%d L=%d\n", r, K, L);
+//     // std::vector<int> checked_candidates = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
+//     std::vector<int> checked_candidates;
+//     for(int check_k = 1; check_k <= 64; check_k*=2){
+//         checked_candidates.push_back(check_k);
+//     }
+//     const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
+//         // int nCandidates = k+K*M;
+//         int nCandidates = k + checked_candidate;
+//         const auto& f = [&](int idx){
+//             float angle = calc_l2_dist(d, data[idx], queryi);
+//             list->insert(angle, idx + 1);
+//         };
+//         index.query(nCandidates, queryi, f);
+//     };
 
-    benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
-});
+//     benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
+// });
 
 bool C2LSH_REGISTED = registerCallback("c2lsh",
 		"n qn d L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
@@ -280,7 +280,7 @@ bool SRP_E2_REGISTERED = registerCallback("srp_e2",
     fprintf(fp.get(), "srp_e2, K=%d L=%d\n", K, L);
     // std::vector<int> checked_candidates = {16, 64, 256, 1024, 4096, 16384, 65536, 262144};
     std::vector<int> checked_candidates;
-    for(int check_k = 64; check_k < n/10; check_k*=4){
+    for(int check_k = 64; check_k < n/10; check_k*=2){
         checked_candidates.push_back(check_k);
     }
     const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
@@ -327,7 +327,7 @@ bool POLYTOPE_E2_REGISTERED = registerCallback("polytope_e2",
     fprintf(fp.get(), "polytope_e2, K=%d L=%d\n", K, L);
     // std::vector<int> checked_candidates = {16, 64, 256, 1024, 4096, 16384, 65536, 262144};
     std::vector<int> checked_candidates;
-    for(int check_k = 1; check_k < n/10; check_k*=4){
+    for(int check_k = 1; check_k < n/10; check_k*=2){
         checked_candidates.push_back(check_k);
     }
     const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
@@ -371,7 +371,7 @@ bool POLYTOPE_C2_REGISTERED = registerCallback("polytope_c2",
 
     fprintf(fp.get(), "polytope_e2, L=%d\n", L);
     std::vector<int> checked_candidates;
-    for(int check_k = 1; check_k < n/10; check_k*=4){
+    for(int check_k = 1; check_k < n/10; check_k*=2){
         checked_candidates.push_back(check_k);
     }
     const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
@@ -401,6 +401,10 @@ bool POLYTOPE_LCCS_REGISTERED = registerCallback("polytope_lccs",
     // int checked_candidate = algAs<int>("checked_candidate");
     int step = algAs<int>("step");
 
+    // for(int i=1;i<=qn;i*=10){
+    //     printf("q%d=\n", i);
+    //     printVec(query[i-1], 300);
+    // }
 
     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;
     typedef ComposibleIndex<PolytopeHasher, mylccs::LCCS_SORT_INT> Index;
@@ -414,11 +418,13 @@ bool POLYTOPE_LCCS_REGISTERED = registerCallback("polytope_lccs",
         return index;
     };
 
+
     fprintf(fp.get(), "polytope_lccs, L=%d\n", L);
     std::vector<int> checked_candidates;
-    for(int check_k = 1; check_k <= 512; check_k*=4){
+    for(int check_k = 1; check_k <= 1024; check_k*=2){
         checked_candidates.push_back(check_k);
     }
+    // std::vector<int> checked_candidates = {1};
     const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
         // int nCandidates = k+K*M;
         int nCandidates = checked_candidate;

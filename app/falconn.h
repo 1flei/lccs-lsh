@@ -27,10 +27,10 @@ public:
         params.lsh_family = falconn::LSHFamily::CrossPolytope;
         params.l = L;
         params.distance_function = falconn::DistanceFunction::EuclideanSquared;
-        falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
-        printf("num_hash_functions=%d\n", params.k);
-
         params.num_rotations = nRotations;
+
+        falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
+        printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);
         params.num_setup_threads = 1;
         params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
     }
