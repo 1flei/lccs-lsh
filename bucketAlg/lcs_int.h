@@ -306,5 +306,76 @@ namespace mylccs
 				tryCheckLoc(curidx, d);
 			}
 		}
+
+		//check between start and end only
+		template<typename F>
+		void for_candidates_between(int start, int end, int nCandidates, const std::vector<int32_t>& query, const F& f) 
+		{
+			const int32_t* queryp = (const int32_t*)&query[0];
+
+			// std::vector<CandidateLoc> pool;
+			// pool.reserve(nSearchLoc * 2 + nCandidates*nSearchLoc);
+			// std::priority_queue<CandidateLoc, std::vector<CandidateLoc>> candidates(std::less<CandidateLoc>() , std::move(pool));
+
+			int startLoc = start/step*step%dim;
+			int endLoc = endLoc/step*step%dim;
+			if(startLoc==endLoc){
+				return; 
+			}
+			
+            // inque.clear();
+            checked.clear();
+            int checkCounter = 0;
+            //call the callback function if not checked and increase the counter
+            const auto& tryCheck = [&](int dataidx){
+				if (!checked.isMarked(dataidx)) {
+                    checked.mark(dataidx);
+					f(dataidx);
+                    checkCounter++;
+				}
+            };
+            const auto& tryCheckLoc = [&](int curidx, int d){
+				for(int i=curidx;i>=0 && curidx-i<nCandidates;--i){
+					int matchingIdx = getidx(d, i);
+					tryCheck(matchingIdx);
+				}
+				for(int i=curidx+1;i<nPnts && i-curidx-1<nCandidates;i++){
+					int matchingIdx = getidx(d, i);
+					tryCheck(matchingIdx);
+				}
+            };
+
+			// printf("new q!!!!\n\n");
+
+			auto [curidx, lowlen, highlen] = get_loc(queryp, startLoc);
+			tryCheckLoc(curidx, 0);
+
+			for(int d_=1;d_<nSearchLoc;d_++){
+				int d = (startLoc+d_*step)%dim;
+				int lowidx = next_link[d-step][curidx];
+				int highidx = next_link[d-step][curidx+1];
+
+				if(lowlen < step){
+					lowlen = 0;
+					lowidx = 0;
+				} else if(lowlen!=dim){
+					lowlen -= step;
+				}
+
+				if(highlen < step){
+					highlen = 0;
+					highidx = nPnts-1;
+				} else if(highlen!=dim){
+					highlen -= step;
+				}
+				// printf("  lidx, llen, hidx, hlen=%d, %d, %d, %d\n", lowidx, lowlen, highidx, highlen);
+				std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
+				tryCheckLoc(curidx, d);
+
+				if(d==endLoc){
+					return ;
+				}
+			}
+		}
 	};
 }

@@ -11,7 +11,7 @@
 #include "../bucketAlg/c2bucketing.h"
 #include "../bucketAlg/hamming.h"
 #include "../bucketAlg/klbucketing.h"
-#include "../bucketAlg/lcs.h"
+// #include "../bucketAlg/lcs.h"
 #include "../bucketAlg/lcs_int.h"
 #include "../bucketAlg/lcs_int_reorder.h"
 // #include "../bucketAlg/lcs_opt.h"
@@ -21,6 +21,8 @@
 #include "../hashAlg/srp.h"
 #include "../hashAlg/e2eigen.h"
 #include "../hashAlg/polytope.h"
+
+#include "../hashAlg/mp_hasher.h"
 
 //for illustration only
 class HasherInterface {

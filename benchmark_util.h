@@ -115,14 +115,14 @@ void benchmark_multiplek(
     // }
 
 	timeval start_time, end_time;
-    int memoryBeforeBuildingIndex = get_global_memory_usage();
+    int64_t memoryBeforeBuildingIndex = get_global_memory_usage();
     gettimeofday(&start_time, NULL);
     auto lsh = fIndexerFactory();
     gettimeofday(&end_time, NULL);
-    int memoryAfterBuildingIndex = get_global_memory_usage();
+    int64_t memoryAfterBuildingIndex = get_global_memory_usage();
     float indexing_time = end_time.tv_sec - start_time.tv_sec + (end_time.tv_usec - start_time.tv_usec) / 1000000.0f;
 
-    int indexingMemory = memoryAfterBuildingIndex - memoryBeforeBuildingIndex;
+    int64_t indexingMemory = memoryAfterBuildingIndex - memoryBeforeBuildingIndex;
     
     printf("Indexing Time: %f Seconds\n\n", indexing_time);
     fprintf(fp, "Indexing Time: %f Seconds\n\n", indexing_time);
@@ -130,8 +130,10 @@ void benchmark_multiplek(
     printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
     fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
     
-    printf("Estimated Memory Usage: %d Bytes\n\n", indexingMemory);
-    fprintf(fp, "Estimated Memory Usage: %d Bytes\n\n", indexingMemory);
+    //since it is not possible to get the exact memory usage for some external library
+    //going to use this value as the estimator of the memory usage of each method
+    printf("Estimated Memory Usage: %ld Bytes\n\n", indexingMemory);
+    fprintf(fp, "Estimated Memory Usage: %ld Bytes\n\n", indexingMemory);
 
     // int kMIPs[] = { 1, 2, 5, 10, 100 };
     int kMIPs[] = { 1, 2, 5, 10};

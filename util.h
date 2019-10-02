@@ -13,6 +13,7 @@
 #include <cstdint> 
 #include <vector>
 #include <random>
+#include <sstream>
 
 #include <unistd.h>
 #include "def.h"
@@ -452,22 +453,24 @@ struct HashCombinator
 
 //get from https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 
-inline int parseLine(char* line)
+inline int64_t parseLine(char* line)
 {
     // This assumes that a digit will be found and the line ends in " Kb".
     int i = strlen(line);
     const char* p = line;
     while (*p <'0' || *p > '9') p++;
     line[i-3] = '\0';
-    i = atoi(p);
-    return i;
+	std::istringstream iss(p);
+	int64_t ret;
+	iss >> ret;
+    return ret;
 }
 
 //in bytes
-inline int get_global_memory_usage()
+inline int64_t get_global_memory_usage()
 {
     FILE* file = fopen("/proc/self/status", "r");
-    int result = -1;
+    int64_t result = -1;
     char line[128];
 
     while (fgets(line, 128, file) != NULL){

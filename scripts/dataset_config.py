@@ -24,7 +24,7 @@ class MNIST784:
 class Trevi:
     def __init__(self):
         self.n = 100800
-        self.qn = 1000
+        self.qn = 100
         self.d = 4096
         self.name = 'Trevi'
 
@@ -75,8 +75,8 @@ class Gist:
 class MovieLens:
     def __init__(self):
         # self.n = 50000
-        self.n = 52889
         # self.qn = 3889
+        self.n = 52889
         self.qn = 1000
         self.d  = 150
         self.name = 'MovieLens'

@@ -9,7 +9,8 @@
 using namespace std;
 using namespace boost::program_options;
 
-
+//some initilization and registration will be done before main function
+//can check register.h/cpp and composible_index.cpp for example
 int main(int argc, char **argv)
 {
     int n, qn, d;

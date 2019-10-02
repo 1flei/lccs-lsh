@@ -31,5 +31,5 @@ def to_binary(dataset_name):
 # to_binary('Sift')
 # to_binary('Gist')
 # to_binary('Mnist784')
-# to_binary('glove')
-to_binary('Trevi')
+to_binary('glove')
+# to_binary('Trevi')

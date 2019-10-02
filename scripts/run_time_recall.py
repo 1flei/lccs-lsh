@@ -105,26 +105,25 @@ def run_e2_polytope(datasets=datasets, Ls=[100], Ks=[10]):
                 print(cmd)
                 os.system(cmd)
                 
-def run_c2_polytope(datasets=datasets, Ls=[100], Ks=[10]):
-    method = 'polytope_e2'
+def run_c2_polytope(datasets=datasets, Ls=[100]):
+    method = 'polytope_c2'
     curtime = strftime("%m-%d_%H_%M", gmtime())
-    def getArgs(ds, L, K):
-        return '-A %s -n %d -q %d -d %d -D %s -Q %s -O %s -G %s -L %d -K %d --binary_input'%\
+    def getArgs(ds, L):
+        return '-A %s -n %d -q %d -d %d -D %s -Q %s -O %s -G %s -L %d  --binary_input'%\
             (method, ds.n, ds.qn, ds.d, 
             get_dataset_path(ds), 
             get_query_path(ds), 
             get_output_filename(ds, method, curtime), 
             get_grount_truth_path(ds, 'angle'), 
-            L, 
-            K)
+            L
+            )
     
     for ds in datasets:
         for L in Ls:
-            for K in Ks:
-                args = getArgs(ds, L, K)
-                cmd = './lcsb '+args
-                print(cmd)
-                os.system(cmd)
+            args = getArgs(ds, L)
+            cmd = './lcsb '+args
+            print(cmd)
+            os.system(cmd)
 
 def run_lccs_polytope(datasets=datasets, Ls=[100], step=5, method = 'polytope_lccs'):
     curtime = strftime("%m-%d_%H_%M", gmtime())
@@ -226,18 +225,22 @@ def run_falconn(datasets=datasets, Ls=[10, 20, 30, 40, 50], nBitss=[18], method=
                 os.system(cmd)
 
 if __name__ == '__main__':
-    # datasets = [Sift()]
+    datasets = [Sift()]
     # datasets = [Glove()]
-    datasets = [Trevi()]
+    # datasets = [Trevi()]
+    # datasets = [Sift10M()]
 
     # run_lcsb(datasets=datasets, Ls=[8, 13, 21, 34, 55, 89, 144, 233], method='lcsb_reorder')
     run_lcsb(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512], method='lcsb', step=1)
-    run_e2lsh(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
-    run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4], rratio=1, method='mplsh_lshkit')
-    # run_e2_srp(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
-    # run_c2lsh(datasets=datasets, Ls=[32, 64, 128, 256, 512])
-
     # run_lcsb(datasets=datasets, Ls=[32, 64, 128, 256, 512, 1024, 2048, 4096])
+
+    run_mplsh(datasets=datasets, Ls=[1, 2, 3, 4, 8, 16, 32], rratio=1, Ks=list(range(4, 16)), method='mplsh_lshkit')
+    run_e2lsh(datasets=datasets, Ls=[100, 200, 300], Ks=list(range(5, 16)))
+    run_c2lsh(datasets=datasets, Ls=[32, 64, 128, 256, 512])
+
+    # run_e2_srp(datasets=datasets, Ls=[300], Ks=list(range(5, 16)))
+
     run_lccs_polytope(datasets=datasets, Ls=[8, 16, 32, 64, 128, 256, 512, 1024], step=1)
     run_falconn(datasets=datasets, nBitss=[18])
     run_e2_polytope(datasets=datasets, Ls=[50, 100, 150, 200], Ks=list(range(2, 9)))
+    run_c2_polytope(datasets=datasets, Ls=[8, 16, 32, 64, 128])

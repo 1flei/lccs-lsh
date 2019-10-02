@@ -344,7 +344,7 @@ bool POLYTOPE_E2_REGISTERED = registerCallback("polytope_e2",
 });
 
 bool POLYTOPE_C2_REGISTERED = registerCallback("polytope_c2",
-		"n qn d K L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+		"n qn d L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = algAs<int>("n");
 	int qn = algAs<int>("qn");

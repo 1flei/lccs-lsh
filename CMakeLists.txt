@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-sign-compare")
-set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable")
+set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable -Wno-int-in-bool-context")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -33,14 +33,15 @@ ADD_EXECUTABLE(lcsb ${DIR_SRCS}
                 "register.cpp"
                 "hashAlg/srp.cpp"
                 "hashAlg/pivots.cpp"
-                "bucketAlg/lcs.cpp"
                 "bucketAlg/lcs_int_reorder.cpp"
                 "app/composible_index.cpp"
                 "app/ground_truth.cc"
                 "app/mplsh.cpp"
                 "app/falconn.cpp"
+                "app/mp_lccs.cpp"
 
-                "bucketAlg/lcs_test.cpp"
+                # "bucketAlg/lcs_test.cpp"
+                # "bucketAlg/lcs.cpp"
               )
 
 TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} 

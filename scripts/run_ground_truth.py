@@ -2,7 +2,7 @@ from dataset_config import *
 import os
 import sys
 
-datasets = [Trevi()]
+datasets = [Glove()]
 
 def get_dataset_path(dataset, isbinary=True):
     suffix = 'dsb' if isbinary else 'ds'
