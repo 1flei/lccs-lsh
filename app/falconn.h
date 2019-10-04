@@ -20,7 +20,7 @@ public:
     int dim;
     int L;
 
-    FALCONN_INDEX(int n, int d, int L, int K, int lastCpDim, int nRotations=1) 
+    FALCONN_INDEX(int n, int d, int L, int K, int lastCpDim, int nRotations=1, bool useBitPackedHashTable=false) 
         : nPnts(n), dim(d), L(L)
     {
         params.dimension = d;
@@ -34,8 +34,9 @@ public:
         // falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
         // printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);
         params.num_setup_threads = 1;
-        // params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
-        params.storage_hash_table = falconn::StorageHashTable::LinearProbingHashTable;
+        params.storage_hash_table = useBitPackedHashTable ? 
+                falconn::StorageHashTable::BitPackedFlatHashTable : 
+                falconn::StorageHashTable::LinearProbingHashTable;
     }
     
     std::vector<PointType> data_vec;

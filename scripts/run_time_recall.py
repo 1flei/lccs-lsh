@@ -86,5 +86,5 @@ possible_distances = ['l2', 'angle']
 possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove()]
 
 if __name__ == '__main__':
-    run_alg([MPLSH()], [Sift(), Gist(), Glove(), Sift10M()], 'l2')
+    run_alg([LCCS_MP()], [Sift(), Gist(), Glove(), Sift10M()], 'angle')
     # run_alg(MPLSH(Ks=[4], Ls=[8]), MNIST784(), 'angle')

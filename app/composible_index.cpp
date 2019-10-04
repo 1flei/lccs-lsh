@@ -8,19 +8,19 @@ bool LCCS_INT_REGISTED = registerCallback("lcsb",
 		"n qn d L r step dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
     using namespace mylccs;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
 
-    // int checked_candidate = algAs<int>("checked_candidate");
-    // double alpha = algAs<double>("alpha");
-    int step = algAs<int>("step");
+    // int checked_candidate = argAs<int>("checked_candidate");
+    // double alpha = argAs<double>("alpha");
+    int step = argAs<int>("step");
 
     // using LCSIndex = LCCS_LSH_REORDER;
     using LCSIndex = LCCS_SORT_INT;
@@ -63,19 +63,19 @@ bool LCCS_INT_REORDER_REGISTED = registerCallback("lcsb_reorder",
 		"n qn d L r step dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
     using namespace mylccs;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
 
-    // int checked_candidate = algAs<int>("checked_candidate");
-    // double alpha = algAs<double>("alpha");
-    int step = algAs<int>("step");
+    // int checked_candidate = argAs<int>("checked_candidate");
+    // double alpha = argAs<double>("alpha");
+    int step = argAs<int>("step");
 
     using LCSIndex = LCCS_LSH_REORDER;
     typedef ComposibleIndex<E2Eigen, LCSIndex, int32_t> SRP_LCS;
@@ -115,17 +115,17 @@ bool LCCS_INT_REORDER_REGISTED = registerCallback("lcsb_reorder",
 bool E2LSH_REGISTED = registerCallback("e2lsh",
 		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-    int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int K = argAs<int>("K");
+    int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
 
 
     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;
@@ -162,17 +162,17 @@ bool E2LSH_REGISTED = registerCallback("e2lsh",
 // bool MPLSH_REGISTED = registerCallback("mplsh",
 // 		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 // 	using namespace MyCallbackRegister;
-// 	int n = algAs<int>("n");
-// 	int qn = algAs<int>("qn");
-// 	int d = algAs<int>("d");
-// 	int K = algAs<int>("K");
-//     int L = algAs<int>("L");
-//     double r = algAs<double>("r");
-// 	const float** data = algAs<const float**>("dataset");
-// 	const float** query = algAs<const float**>("queryset");
-// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
-// 	string output_filename = algAs<string>("output_filename");
-//     // int checked_candidate = algAs<int>("checked_candidate");
+// 	int n = argAs<int>("n");
+// 	int qn = argAs<int>("qn");
+// 	int d = argAs<int>("d");
+// 	int K = argAs<int>("K");
+//     int L = argAs<int>("L");
+//     double r = argAs<double>("r");
+// 	const float** data = argAs<const float**>("dataset");
+// 	const float** query = argAs<const float**>("queryset");
+// 	const Result** ground_truth = argAs<const Result**>("ground_truth");
+// 	string output_filename = argAs<string>("output_filename");
+//     // int checked_candidate = argAs<int>("checked_candidate");
 
 
 //     typedef ComposibleIndex<E2Eigen, MYMPLSH> Index;
@@ -208,17 +208,17 @@ bool E2LSH_REGISTED = registerCallback("e2lsh",
 bool C2LSH_REGISTED = registerCallback("c2lsh",
 		"n qn d L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	// int K = algAs<int>("K");
-    int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	// int K = argAs<int>("K");
+    int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
 
 
     typedef ComposibleIndex<E2Eigen, C2Bucketing> Index;
@@ -253,16 +253,16 @@ bool C2LSH_REGISTED = registerCallback("c2lsh",
 // bool SRP_E2_REGISTERED = registerCallback("srp_e2",
 // 		"n qn d K L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 // 	using namespace MyCallbackRegister;
-// 	int n = algAs<int>("n");
-// 	int qn = algAs<int>("qn");
-// 	int d = algAs<int>("d");
-// 	int K = algAs<int>("K");
-//     int L = algAs<int>("L");
-// 	const float** data = algAs<const float**>("dataset");
-// 	const float** query = algAs<const float**>("queryset");
-// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
-// 	string output_filename = algAs<string>("output_filename");
-//     // int checked_candidate = algAs<int>("checked_candidate");
+// 	int n = argAs<int>("n");
+// 	int qn = argAs<int>("qn");
+// 	int d = argAs<int>("d");
+// 	int K = argAs<int>("K");
+//     int L = argAs<int>("L");
+// 	const float** data = argAs<const float**>("dataset");
+// 	const float** query = argAs<const float**>("queryset");
+// 	const Result** ground_truth = argAs<const Result**>("ground_truth");
+// 	string output_filename = argAs<string>("output_filename");
+//     // int checked_candidate = argAs<int>("checked_candidate");
 
 
 //     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;
@@ -300,18 +300,18 @@ bool C2LSH_REGISTED = registerCallback("c2lsh",
 bool POLYTOPE_E2_REGISTERED = registerCallback("polytope_e2",
 		"n qn d K L cp_dim dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-    int L = algAs<int>("L");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int K = argAs<int>("K");
+    int L = argAs<int>("L");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
 
-    int lastCpDim = algAs<int>("cp_dim");
+    int lastCpDim = argAs<int>("cp_dim");
 
     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;
     typedef ComposibleIndex<PolytopeHasher, KLBucketing> Index;
@@ -347,17 +347,17 @@ bool POLYTOPE_E2_REGISTERED = registerCallback("polytope_e2",
 bool POLYTOPE_C2_REGISTERED = registerCallback("polytope_c2",
 		"n qn d L cp_dim dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-    int L = algAs<int>("L");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+    int L = argAs<int>("L");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
 
-    int lastCpDim = algAs<int>("cp_dim");
+    int lastCpDim = argAs<int>("cp_dim");
 
 
     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;
@@ -393,18 +393,18 @@ bool POLYTOPE_C2_REGISTERED = registerCallback("polytope_c2",
 bool POLYTOPE_LCCS_REGISTERED = registerCallback("polytope_lccs",
 		"n qn d L cp_dim dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-    int L = algAs<int>("L");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
-    // int step = algAs<int>("step");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+    int L = argAs<int>("L");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
+    // int step = argAs<int>("step");
     int step = 1;
-    int lastCpDim = algAs<int>("cp_dim");
+    int lastCpDim = argAs<int>("cp_dim");
     // for(int i=1;i<=qn;i*=10){
     //     printf("q%d=\n", i);
     //     printVec(query[i-1], 300);
@@ -445,15 +445,15 @@ bool POLYTOPE_LCCS_REGISTERED = registerCallback("polytope_lccs",
 // bool SRP_SCAN_REGISTERED = registerCallback("srp_scan",
 // 		"n qn d L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 // 	using namespace MyCallbackRegister;
-// 	int n = algAs<int>("n");
-// 	int qn = algAs<int>("qn");
-// 	int d = algAs<int>("d");
-//     int L = algAs<int>("L");
-// 	const float** data = algAs<const float**>("dataset");
-// 	const float** query = algAs<const float**>("queryset");
-// 	const Result** ground_truth = algAs<const Result**>("ground_truth");
-// 	string output_filename = algAs<string>("output_filename");
-//     // int checked_candidate = algAs<int>("checked_candidate");
+// 	int n = argAs<int>("n");
+// 	int qn = argAs<int>("qn");
+// 	int d = argAs<int>("d");
+//     int L = argAs<int>("L");
+// 	const float** data = argAs<const float**>("dataset");
+// 	const float** query = argAs<const float**>("queryset");
+// 	const Result** ground_truth = argAs<const Result**>("ground_truth");
+// 	string output_filename = argAs<string>("output_filename");
+//     // int checked_candidate = argAs<int>("checked_candidate");
 
 
 //     // typedef ComposibleIndex<E2Eigen, KLBucketing> Index;

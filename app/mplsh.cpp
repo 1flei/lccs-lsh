@@ -6,18 +6,18 @@ using namespace MyCallbackRegister;
 bool MPLSH_LSHKIT_REGISTED = registerCallback("mplsh_lshkit",
 		"n qn d K L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	int K = algAs<int>("K");
-    int L = algAs<int>("L");
-    // int T = algAs<int>("T");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
-    // int checked_candidate = algAs<int>("checked_candidate");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int K = argAs<int>("K");
+    int L = argAs<int>("L");
+    // int T = argAs<int>("T");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+    // int checked_candidate = argAs<int>("checked_candidate");
 
 
     // typedef MPLSH Index;

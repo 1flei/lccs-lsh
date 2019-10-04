@@ -6,17 +6,17 @@ using namespace MyCallbackRegister;
 bool MP_LCCS_REGISTED = registerCallback("mp_lccs",
 		"n qn d L r p dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-    int L = algAs<int>("L");
-    double r = algAs<double>("r");
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
-	const Result** ground_truth = algAs<const Result**>("ground_truth");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+    int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
 
-    int p = algAs<int>("p");
+    int p = argAs<int>("p");
     int defaultLookBack=7;
 
     // typedef MPLSH Index;

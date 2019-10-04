@@ -38,8 +38,12 @@ void addArg(const std::string &name, const boost::any& anyArg);
 
 void run(const std::string &name);
 
+inline bool hasArg(const std::string& name) {
+	return vm.find(name)!=vm.end();
+}
+
 template<typename T>
-T algAs(const std::string& name){
+T argAs(const std::string& name){
     assert(vm.find(name)!=vm.end());
     return vm[name].as<T>();
 }

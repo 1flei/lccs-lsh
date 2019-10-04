@@ -5,39 +5,39 @@ using namespace std;
 bool ground_truth_angle_registed = MyCallbackRegister::registerCallback("ground_truth_angle", 
 		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	string output_filename = argAs<string>("output_filename");
 
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
 	ground_truth_angle(n, qn, d, data, query, output_filename.c_str());
 });
 
 bool ground_truth_cosine_similarity_registed = MyCallbackRegister::registerCallback("ground_truth_cosine_similarity", 
 		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	string output_filename = argAs<string>("output_filename");
 
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
 	ground_truth_cosine_similarity(n, qn, d, data, query, output_filename.c_str());
 });
 
 bool ground_truth_l2_registed = MyCallbackRegister::registerCallback("ground_truth_l2", 
 		"n qn d dataset_filename queryset_filename output_filename", [](){
 	using namespace MyCallbackRegister;
-	int n = algAs<int>("n");
-	int qn = algAs<int>("qn");
-	int d = algAs<int>("d");
-	string output_filename = algAs<string>("output_filename");
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	string output_filename = argAs<string>("output_filename");
 
-	const float** data = algAs<const float**>("dataset");
-	const float** query = algAs<const float**>("queryset");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
 	ground_truth_l2(n, qn, d, data, query, output_filename.c_str());
 });
 
