@@ -13,10 +13,10 @@ namespace mylccs
 class MP_LCCS_L2
 {
 public:
-    MP_LCCS_L2(int n, int dim, int L, float W, int lookupLen=8, int checkedCandidates=4) 
+    MP_LCCS_L2(int n, int dim, int L, float W, int lookupLen=7, int defaultNProbe=2) 
         : nPnts(n), dim(dim), L(L), W(W), cm(n), 
-        lookupLen(lookupLen), checkedCandidates(checkedCandidates), 
-        hasher(dim, L, W), bucketer(L, 1)
+        lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
+        hasher(dim, L, W, lookupLen), bucketer(L, 1)
     {
     };
     
@@ -40,11 +40,24 @@ public:
     }
 
     template <typename FCandidate>
-    void query(int nProbes, const float* query, const FCandidate& f)
+    void query(int checkedCandidates, const float* query, const FCandidate& f)
     {
+        // int checkedCandidates = 4*nProbes;
+        // int checkedCandidates = 16;
+        int nProbes = defaultNProbe*L+1;
         hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int lastIdx){
-            int startIdx = (lastIdx-lookupLen+L)%L;
-            bucketer.for_candidates_between(startIdx, lastIdx, checkedCandidates, qcode, f);
+            if(lastIdx==-1){
+                // printf("hq0\n");
+                // printVec(qcode.begin(), L);
+                bucketer.for_candidates(checkedCandidates, qcode, f);
+                // printf("hq0 done!!!\n");
+            } else{
+                int startIdx = (lastIdx-lookupLen+L)%L;
+                // printf("hq[%d, %d]\n", startIdx, lastIdx);
+                // printVec(qcode.begin(), L);
+                bucketer.for_candidates_between(startIdx, lastIdx, checkedCandidates, qcode, f);
+                // printf("hq[%d, %d] done!!!\n", startIdx, lastIdx);
+            }
         });
     }
 
@@ -55,7 +68,7 @@ public:
     float W;
     CountMarker cm;
     int lookupLen;
-    int checkedCandidates;
+    int defaultNProbe;
 
     const float** data;
 

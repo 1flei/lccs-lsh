@@ -23,8 +23,8 @@ public:
     Transformer transfromer;
 
     PolytopeHasher(int vector_dim,
-                int l, int num_rotations=1,
-                int last_cp_dim=32, int seed=666)
+                int l, int last_cp_dim=32, int num_rotations=1,
+                int seed=666)
         :dim(vector_dim), 
          sigdim(l), 
          num_rotations(num_rotations), 

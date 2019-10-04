@@ -1,8 +1,4 @@
 
-def getr(dataset):
-    rs_key = {'Mnist':300, 'Sift':200}
-    return rs_key[dataset.name]
-
 class MNIST:
     def __init__(self):
         self.n = 60000

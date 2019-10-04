@@ -41,8 +41,9 @@ int main(int argc, char **argv)
         ("p,p", value<int>(), "parameter used for some algorithms")
         ("step", value<int>(), "parameter used for some algorithms")
         ("r,r", value<double>(), "parameter used for some algorithms")
+
 		("nHashBits", value<int>(), "parameter used for FALCONN")
-        
+        ("cp_dim", value<int>(), "parameter for Crosspolytope Hasher")
 
 		("binary_input", "read from binary input")
 

@@ -308,6 +308,7 @@ namespace mylccs
 		}
 
 		//check between start and end only
+		// will not clear checked, so this should be called only after for_candidates is called. 
 		template<typename F>
 		void for_candidates_between(int start, int end, int nCandidates, const std::vector<int32_t>& query, const F& f) 
 		{
@@ -318,13 +319,12 @@ namespace mylccs
 			// std::priority_queue<CandidateLoc, std::vector<CandidateLoc>> candidates(std::less<CandidateLoc>() , std::move(pool));
 
 			int startLoc = start/step*step%dim;
-			int endLoc = endLoc/step*step%dim;
+			int endLoc = end/step*step%dim;
 			if(startLoc==endLoc){
 				return; 
 			}
 			
-            // inque.clear();
-            checked.clear();
+            // checked.clear();
             int checkCounter = 0;
             //call the callback function if not checked and increase the counter
             const auto& tryCheck = [&](int dataidx){
@@ -348,12 +348,13 @@ namespace mylccs
 			// printf("new q!!!!\n\n");
 
 			auto [curidx, lowlen, highlen] = get_loc(queryp, startLoc);
-			tryCheckLoc(curidx, 0);
+			tryCheckLoc(curidx, startLoc);
 
 			for(int d_=1;d_<nSearchLoc;d_++){
 				int d = (startLoc+d_*step)%dim;
-				int lowidx = next_link[d-step][curidx];
-				int highidx = next_link[d-step][curidx+1];
+				int prevd = (d-step+dim)%dim;
+				int lowidx = next_link[prevd][curidx];
+				int highidx = next_link[prevd][curidx+1];
 
 				if(lowlen < step){
 					lowlen = 0;

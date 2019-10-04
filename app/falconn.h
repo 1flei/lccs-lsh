@@ -20,7 +20,7 @@ public:
     int dim;
     int L;
 
-    FALCONN_INDEX(int n, int d, int L, int nBits, int nRotations=1) 
+    FALCONN_INDEX(int n, int d, int L, int K, int lastCpDim, int nRotations=1) 
         : nPnts(n), dim(d), L(L)
     {
         params.dimension = d;
@@ -28,11 +28,14 @@ public:
         params.l = L;
         params.distance_function = falconn::DistanceFunction::EuclideanSquared;
         params.num_rotations = nRotations;
+        params.k = K;
+        params.last_cp_dimension = lastCpDim;
 
-        falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
-        printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);
+        // falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
+        // printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);
         params.num_setup_threads = 1;
-        params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
+        // params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
+        params.storage_hash_table = falconn::StorageHashTable::LinearProbingHashTable;
     }
     
     std::vector<PointType> data_vec;
@@ -56,66 +59,13 @@ public:
         queryObjectPtr->get_unique_candidates(MPoint((float*)query, dim), &candidates);
         for(int idx:candidates){
             float l2dist = calc_angle(dim, data[idx], query);
+            // printf("%d, %f\n", idx, l2dist);
             list->insert(l2dist, idx + 1);
         }
     }
 
     int64_t get_memory_usage()
     {
-        //not implemented yet
-        //this class
-        int64_t ret = sizeof(*this);
-        //table, may ignore some insignificant part such as some pointers
-        //table is essentially LSHNNTableWrapper pointer
-        //memory_usage
-        using namespace falconn;
-        using KeyType = int32_t;
-        typedef typename PointTypeTraits<PointType>::ScalarType ScalarType;
-
-        typedef typename wrapper::PointTypeTraitsInternal<PointType>::CosineDistance
-            DistanceFunctionType;
-
-        typedef uint32_t HashType;
-
-        typedef typename wrapper::PointTypeTraitsInternal<
-            PointType>::template HPHash<HashType>
-            LSHType;
-        typename std::unique_ptr<LSHType> LSHPointerType;
-        typedef core::BitPackedFlatHashTable<HashType> HashTable;
-        typedef typename HashTable::Factory HashTableFactoryType;
-        typedef std::vector<PointType> PointSet;
-
-        typedef typename wrapper::DataStorageAdapter<PointSet>::template DataStorage<KeyType>
-            DataStorageType;
-
-        typedef core::StaticCompositeHashTable<HashType, KeyType, HashTable>
-            CompositeHashTableType;
-        typedef core::StaticLSHTable<PointType, KeyType, LSHType, HashType,
-                                     CompositeHashTableType, DataStorageType>
-            LSHTableType;
-
-        using TableWrapper = falconn::wrapper::LSHNNTableWrapper<PointType, KeyType, ScalarType,
-                                    DistanceFunctionType, LSHTableType,
-                                    LSHType, HashTableFactoryType,
-                                    CompositeHashTableType, DataStorageType>;
-        
-        //hacker ;)
-        // struct MyWrapper : public TableWrapper
-        // {
-        //     MyWrapper(const TableWrapper& tw):
-        //         TableWrapper(tw) {}
-
-        //     int64_t get_memory_usage() {
-        //         int64_t ret = 0;
-        //         //those are the member that we need to count the memory usage
-        //         // lsh_, lsh_table_, hash_table_factory_, composite_hash_table_, data_storage_;
-        //         ret += data_storage_->size() * sizeof(KeyType);
-        //         return ret;
-        //     }
-        // };
-        
-        // MyWrapper* table_tmp = dynamic_cast<MyWrapper*>(table.get());
-        // ret += table_tmp->get_memory_usage();
         return 0;
     }
 
