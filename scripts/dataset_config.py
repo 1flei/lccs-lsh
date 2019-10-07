@@ -85,6 +85,23 @@ class Glove:
         self.name = 'glove'
         self.r =  8
 
+class NUSW:
+    def __init__(self):
+        self.n = 268648
+        self.qn = 1000
+        self.d = 500
+        self.name = 'NUSW'
+        self.r = 28
+
+class Deep:
+    def __init__(self):
+        self.n = 1000000
+        self.qn = 1000
+        self.d = 256
+        self.name = 'deep'
+        self.r = 0.66
+        
+
 class Synthetic:
     def __init__(self):
         self.n = 1000000

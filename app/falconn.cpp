@@ -4,7 +4,7 @@ using namespace std;
 using namespace MyCallbackRegister;
 
 bool FALCONN_REGISTED = registerCallback("falconn",
-		"n qn d L cp_dim dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+		"n qn d L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = argAs<int>("n");
 	int qn = argAs<int>("qn");
@@ -12,8 +12,6 @@ bool FALCONN_REGISTED = registerCallback("falconn",
 	// int nBits = argAs<int>("nHashBits");
     int L = argAs<int>("L");
     int K = argAs<int>("K");
-
-    int lastCpDim = argAs<int>("cp_dim");
 
 	const float** data = argAs<const float**>("dataset");
 	const float** query = argAs<const float**>("queryset");
@@ -30,13 +28,13 @@ bool FALCONN_REGISTED = registerCallback("falconn",
     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
 
     const auto& fif = [&](){
-		auto index = make_unique<Index>(n, d, L, K, lastCpDim, numRotation, useBitPackedHashTable);
+		auto index = make_unique<Index>(n, d, L, K, numRotation, useBitPackedHashTable);
         index->build(data);
         return index;
     };
 
     fprintf(fp.get(), "falconn  K=%d, L=%d\n", K, L);
-    std::vector<int> nProbess = {1, 2, 4, 8, 16, 32};
+    std::vector<int> nProbess = {0, 1, 2, 4, 8, 16, 32};
 
     const auto& fq = [&](Index &index, int k, int nProbes, const float* queryi, MinK_List* list) {
         // int nCandidates = k+K*M;

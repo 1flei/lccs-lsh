@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         ("r,r", value<double>(), "parameter used for some algorithms")
 
 		("nHashBits", value<int>(), "parameter used for FALCONN")
-        ("cp_dim", value<int>(), "parameter for Crosspolytope Hasher")
+        // ("cp_dim", value<int>(), "parameter for Crosspolytope Hasher")
 		("bit_packed", "whether to use bit_packed hash table for FALCONN")
 
 		("binary_input", "read from binary input")

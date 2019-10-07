@@ -1,11 +1,7 @@
 #pragma once
 
-#include <vector>
-#include "../util.h"
-#include <cassert>
-#include <random>
-#include "../Eigen/Eigen"
-#include <queue>
+#include "../hashAlg/e2eigen.h"
+#include "../hashAlg/polytope.h"
 
 //multi-probe version of E2Eigen
 class E2MP
@@ -250,7 +246,7 @@ public:
             for(Pert& p:pertubations[i]){
                 ret[p.idx] += p.shift;
             }
-            f(ret, pertubations[i].back().idx);
+            f(ret, pertubations[i][0].idx);
             for(Pert& p:pertubations[i]){
                 ret[p.idx] -= p.shift;
             }
@@ -288,4 +284,100 @@ class CrossPolytopeMP
 {
 public:
     using SigType = int32_t;
+
+    // using SigType = uint32_t;
+    // using Hasher = falconn::core::CrossPolytopeHashBase<falconn::core::CrossPolytopeHashDense<Scalar, SigType>, std::vector<float>, Scalar, SigType>;
+    using Hasher = falconn::core::CrossPolytopeHashDense<Scalar, SigType>;
+    using Transformer = Hasher::HashTransformation;
+    using TransformedVectorType = Hasher::TransformedVectorType;
+    using HashHelper = falconn::core::cp_hash_helpers::FHTHelper<Scalar>;
+
+    int dim;
+    int l;
+    int num_rotations;
+    int last_cp_dim;
+    int maxSpan;
+    int sigdim;
+    Hasher hasher;
+    Transformer transfromer;
+    TransformedVectorType transformedVec;
+
+    CrossPolytopeMP(int vector_dim,
+                int l, int last_cp_dim=16, int maxSpan=8, int num_rotations=1,
+                int seed=666)
+        :dim(vector_dim), 
+         sigdim(l), 
+         num_rotations(num_rotations), 
+         last_cp_dim(last_cp_dim), 
+         //k=1
+         maxSpan(maxSpan), 
+         hasher(vector_dim, 1, l, num_rotations, last_cp_dim, seed), 
+         transfromer(hasher)
+    {
+        hasher.reserve_transformed_vector_memory(&transformedVec);
+    }
+
+    std::vector<SigType> getSig(const Scalar *data)
+    {
+        std::vector<SigType> ret(sigdim);
+        //assume memory is allocated for ret
+        Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
+        hasher.hash(normalized_data_v, &ret, &transformedVec);
+        return ret;
+    }
+
+    void getSig(const Scalar *data, SigType* ret)
+    {
+        std::vector<SigType> res(sigdim);
+        //assume memory is allocated for ret
+        Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
+        hasher.hash(normalized_data_v, &res, &transformedVec);
+        std::copy(res.begin(), res.end(), ret);
+    }
+
+
+    //cannot easily apply static pertubations, will do dynamic one
+    //this version considers the span of pertubation as well
+    // f :: vect<SigT>> -> last_pertubation_idx -> IO
+    template<class F> 
+    void forSig(int nProbes, const Scalar *data, const F& f)
+    {
+        std::vector<SigType> ret(sigdim);
+        //assume memory is allocated for ret
+        Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
+        std::unique_ptr<HashHelper> fht = std::make_unique<HashHelper>(dim);
+        hasher.compute_rotated_vectors(normalized_data_v, &transformedVec, fht.get());
+        // hasher.compute_cp_hashes(transformedVec, 1, l_, rotation_dim_,
+        //               log_rotation_dim_, last_cp_dim_, last_cp_log_dim_,
+        //               result);
+        printf("transformed vector\n");
+        for(int i=0;i<transformedVec.size();i++){
+            printVec(&transformedVec[i][0], dim);
+        }
+
+        hasher.hash(normalized_data_v, &ret, &transformedVec);
+
+        f(ret, -1);
+
+        // for(int i=0;i<nProbes-1;i++){
+        //     for(Pert& p:pertubations[i]){
+        //         ret[p.idx] += p.shift;
+        //     }
+        //     f(ret, pertubations[i][0].idx);
+        //     for(Pert& p:pertubations[i]){
+        //         ret[p.idx] -= p.shift;
+        //     }
+        // }
+    }
+
+    int64_t get_memory_usage()
+    {
+        return 0;
+    }
 };

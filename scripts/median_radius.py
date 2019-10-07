@@ -30,4 +30,6 @@ def read(dataset_name):
 # read('Gist')
 # read('Mnist784')
 # read('glove')
-read('Trevi')
+# read('Trevi')
+# read('NUSW')
+read('deep')

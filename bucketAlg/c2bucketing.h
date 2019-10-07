@@ -16,6 +16,8 @@ public:
         for(int i=0;i<nPnts;i++){
             cntidx[i] = i;
         }
+
+        // threshold = 2;
     };
     int nPnts;
     int L;
@@ -27,6 +29,7 @@ public:
     CountMarker cm;
     std::vector<int> cnt;
     std::vector<int> cntidx;
+    // int threshold;
 
     // void build(const std::vector<std::vector<SigType> > &codes) {
     void build(NDArray<2, SigType> &codes) {
@@ -52,28 +55,61 @@ public:
     }
 
     //cnt strategy, it turns out that cnt strategy is faster than threshold strategy
+    // template<typename F>
+    // void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) 
+    // {
+    //     // int nMarked = 0;    
+    //     // cm.clear();
+    //     buckets.reserve(L);
+    //     std::fill(cnt.begin(), cnt.end(), 0);
+    //     for(int j=0;j<L;j++){
+    //         SigType qcodej = qcode[j];
+    //         auto it = buckets[j].find(qcodej);
+    //         if(it !=buckets[j].end()){
+    //             for(int idx:it->second){
+    //                 cnt[idx]++;
+    //             }
+    //         }
+    //     }
+
+    //     std::nth_element(cntidx.begin(), cntidx.end(), cntidx.begin()+nCandidates, [&](int a, int b){
+    //         return cnt[a] > cnt[b];
+    //     });
+    //     for(int i=0;i<nCandidates;i++){
+    //         f(cntidx[i]);
+    //     }
+    // }
+
+    //threshold strategy
     template<typename F>
-    void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) 
+    void for_candidates(int threshold, const std::vector<SigType> &qcode, const F& f) 
     {
         // int nMarked = 0;    
-        // cm.clear();
+        cm.clear();
         buckets.reserve(L);
-        std::fill(cnt.begin(), cnt.end(), 0);
+        int maxChecked = nPnts/10;
+        int nCheckd = 0;
+        // std::fill(cnt.begin(), cnt.end(), 0);
         for(int j=0;j<L;j++){
             SigType qcodej = qcode[j];
             auto it = buckets[j].find(qcodej);
             if(it !=buckets[j].end()){
                 for(int idx:it->second){
-                    cnt[idx]++;
+                    if(cm.isMarked(idx)){
+                        cnt[idx]++;
+                        if(cnt[idx]==threshold){
+                            f(idx);
+                            nCheckd++;
+                            if(nCheckd >= maxChecked){
+                                return;
+                            }
+                        }
+                    } else{
+                        cm.mark(idx);
+                        cnt[idx] = 1;
+                    }
                 }
             }
-        }
-
-        std::sort(cntidx.begin(), cntidx.end(), [&](int a, int b){
-            return cnt[a] > cnt[b];
-        });
-        for(int i=0;i<nCandidates;i++){
-            f(cntidx[i]);
         }
     }
 

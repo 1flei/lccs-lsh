@@ -2,7 +2,6 @@ from dataset_config import *
 import os
 import sys
 
-datasets = [Glove()]
 
 def get_dataset_path(dataset, isbinary=True):
     suffix = 'dsb' if isbinary else 'ds'
@@ -12,7 +11,7 @@ def get_query_path(dataset, isbinary=True):
     return '../data/%s/%s.%s'%(dataset.name, dataset.name, suffix)
 
 
-def run_ground_truth(datasets=datasets, dist='l2', isbinary=True):
+def run_ground_truth(datasets, dist='l2', isbinary=True):
     dist_alg_dict = {
         'l2': 'ground_truth_l2', 
         'angle': 'ground_truth_angle', 
@@ -33,7 +32,8 @@ def run_ground_truth(datasets=datasets, dist='l2', isbinary=True):
         print(cmd)
         os.system(cmd)
 
+datasets = [Deep()]
 if __name__ == '__main__':
-    run_ground_truth(datasets=datasets, dist='angle')
     run_ground_truth(datasets=datasets, dist='l2')
-    run_ground_truth(datasets=datasets, dist='cs', isbinary=False)
+    run_ground_truth(datasets=datasets, dist='angle')
+    # run_ground_truth(datasets=datasets, dist='cs', isbinary=False)

@@ -8,7 +8,6 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable -Wno-int-in-bool-context")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -20,6 +19,7 @@ if(Boost_FOUND)
 endif()
 
 FIND_PACKAGE(GSL) 
+#GSL for lshkit
 include_directories(${GSL_INCLUDE_DIR} )
 include_directories("lshkit-0.2.1/include")
 include_directories("FALCONN/src/include")

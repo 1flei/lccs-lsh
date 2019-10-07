@@ -20,7 +20,7 @@ public:
     int dim;
     int L;
 
-    FALCONN_INDEX(int n, int d, int L, int K, int lastCpDim, int nRotations=1, bool useBitPackedHashTable=false) 
+    FALCONN_INDEX(int n, int d, int L, int K, int nRotations=1, bool useBitPackedHashTable=false) 
         : nPnts(n), dim(d), L(L)
     {
         params.dimension = d;
@@ -29,7 +29,7 @@ public:
         params.distance_function = falconn::DistanceFunction::EuclideanSquared;
         params.num_rotations = nRotations;
         params.k = K;
-        params.last_cp_dimension = lastCpDim;
+        params.last_cp_dimension = d;
 
         // falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
         // printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);

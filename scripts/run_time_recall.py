@@ -36,11 +36,12 @@ def get_dataset_distance_params(ds, distance):
     if distance=='l2':
         return '-r %f -G %s'%(ds.r, get_grount_truth_path(ds, distance))
     elif distance == 'angle':
-        return '--cp_dim %d -G %s'%(4, get_grount_truth_path(ds, distance))
+        return '-G %s'%(get_grount_truth_path(ds, distance))
     return ''
 
-def get_common_params(ds, method, maxqn=100):
-    curtime = strftime("%m-%d_%H_%M", gmtime())
+def get_common_params(ds, method, maxqn=100, curtime=None):
+    if curtime is None:
+        curtime = strftime("%m-%d_%H_%M", gmtime())
     actual_qn = min(maxqn, ds.qn)
     return '-n %d -q %d -d %d -D %s -Q %s -O %s --binary_input'%\
         (ds.n, actual_qn, ds.d, 
@@ -66,12 +67,12 @@ def get_method_name(method, distance):
     return method_name_dict[(method, distance)]
 
 @list_expansion
-def run_alg(method_obj, dataset, distance):
+def run_alg(method_obj, dataset, distance, curtime=None):
     method = method_obj.name
     # print(method, dataset, distance)
     method_name = get_method_name(method, distance)
     method_name_arg = '-A %s'%method_name
-    common_args = get_common_params(dataset, method_name)
+    common_args = get_common_params(dataset, method_name, curtime=curtime)
 
     distance_dataset_arg = get_dataset_distance_params(dataset, distance)
 
@@ -86,5 +87,7 @@ possible_distances = ['l2', 'angle']
 possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove()]
 
 if __name__ == '__main__':
-    run_alg([LCCS_MP()], [Sift(), Gist(), Glove(), Sift10M()], 'angle')
-    # run_alg(MPLSH(Ks=[4], Ls=[8]), MNIST784(), 'angle')
+    # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
+    run_alg([LCCS(), MPLSH()], [Deep()], 'l2')
+    # run_alg([LCCS_MP()], [MNIST784()], 'angle')
+    # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')
