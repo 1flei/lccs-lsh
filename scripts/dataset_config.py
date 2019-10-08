@@ -85,6 +85,22 @@ class Glove:
         self.name = 'glove'
         self.r =  8
 
+class Glove100:
+    def __init__(self):
+        self.n = 1183514
+        self.qn = 1000
+        self.d  = 100
+        self.name = 'glove100'
+        self.r = 4.65
+
+class Msong:
+    def __init__(self):
+        self.n = 992272
+        self.qn = 200
+        self.d  = 420
+        self.name = 'Msong'
+        self.r = 18.75
+
 class NUSW:
     def __init__(self):
         self.n = 268648

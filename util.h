@@ -62,6 +62,10 @@ Scalar calc_inner_product(			// calc inner product
 	const Scalar *p1,					// 1st point
 	const Scalar *p2);					// 2nd point
 	
+void normalize(
+	int dim, 
+	Scalar *p
+);
 
 // -----------------------------------------------------------------------------
 Scalar calc_l1_dist(					// calc L1 distance

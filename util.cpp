@@ -165,6 +165,20 @@ float calc_inner_product(			// calc inner product
 	return ret;
 }
 
+void normalize(
+	int dim, 
+	float * p
+)
+{
+	double norm = sqrt(calc_inner_product(dim, p, p));
+	if(norm < 1e-9) {
+		return ;
+	}
+	for(int i=0;i<dim;i++){
+		p[i] /= norm;
+	}
+}
+
 // -----------------------------------------------------------------------------
 float calc_angle(				// calc angle
 	int   dim,							// dimension

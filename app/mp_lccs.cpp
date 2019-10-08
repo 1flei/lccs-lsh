@@ -17,7 +17,7 @@ bool MP_LCCS_REGISTED = registerCallback("mp_lccs",
 	string output_filename = argAs<string>("output_filename");
 
     int p = argAs<int>("p");
-    int defaultLookBack=8;
+    int defaultLookBack=4;
 
     // typedef MPLSH Index;
     typedef mylccs::MP_LCCS_L2 Index;
@@ -58,7 +58,7 @@ bool POLYTOPE_MP_LCCS_REGISTED = registerCallback("polytope_mplccs",
 	string output_filename = argAs<string>("output_filename");
 
     int p = argAs<int>("p");
-    int defaultLookBack=8;
+    int defaultLookBack=4;
 
     // typedef MPLSH Index;
     typedef mylccs::MP_LCCS_CP Index;

@@ -58,6 +58,51 @@ bool LCCS_INT_REGISTED = registerCallback("lcsb",
     benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
 });
 
+bool LCCS_COMPACT_REGISTED = registerCallback("lccs_compact",
+		"n qn d L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+	using namespace MyCallbackRegister;
+    using namespace mylccs;
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+
+    int nBits = 4;
+    // using LCSIndex = LCCS_LSH_REORDER;
+    using LCSIndex = LCCS_SORT_COMPACT;
+    typedef ComposibleIndex<E2Eigen, LCSIndex, int32_t> SRP_LCS;
+    std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
+
+    const auto& fif = [&](){
+		auto index = make_unique<SRP_LCS>();
+        index->initHasher(d, L, r);
+        index->initBucketer(L, nBits);
+        index->build_wo_sigs(n, data);
+        return index;
+    };
+
+    fprintf(fp.get(), "compact_lccs  r=%f, L=%d\n", r, L);
+    std::vector<int> checked_candidates = {1, 2, 4, 8, 16, 32, 64, 128, 256};
+    // std::vector<int> checked_candidates = {8};
+    const auto& fq = [&](SRP_LCS &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
+        // int nCandidates = k+K*M;
+        // int nCandidates = k + checked_candidate;
+        int nCandidates = checked_candidate;
+        const auto& f = [&](int idx){
+            float angle = calc_l2_dist(d, data[idx], queryi);
+            list->insert(angle, idx + 1);
+        };
+        index.query(nCandidates, queryi, f);
+    };
+
+    benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
+});
+
 
 bool LCCS_INT_REORDER_REGISTED = registerCallback("lcsb_reorder",
 		"n qn d L r step dataset_filename queryset_filename ground_truth_filename output_filename", [](){
@@ -484,3 +529,57 @@ bool POLYTOPE_LCCS_REGISTERED = registerCallback("polytope_lccs",
 
 //     benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
 // });
+
+bool POLYTOPE_LCCS_COMPACT_REGISTED = registerCallback("polytope_lccs_compact",
+		"n qn d L r dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+	using namespace MyCallbackRegister;
+    using namespace mylccs;
+	int n = argAs<int>("n");
+	int qn = argAs<int>("qn");
+	int d = argAs<int>("d");
+	int L = argAs<int>("L");
+    double r = argAs<double>("r");
+	const float** data = argAs<const float**>("dataset");
+	const float** query = argAs<const float**>("queryset");
+	const Result** ground_truth = argAs<const Result**>("ground_truth");
+	string output_filename = argAs<string>("output_filename");
+
+    int nBits = 1;
+    int p = 1;
+    while(p<d){
+        p*=2;
+        nBits++;
+    }
+    //nBits = 2*ceil(log_2(d) )
+
+    // using LCSIndex = LCCS_LSH_REORDER;
+    typedef ComposibleIndex<PolytopeHasher, LCCS_SORT_COMPACT, int32_t> Index;
+    std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
+
+    const auto& fif = [&](){
+		auto index = make_unique<Index>();
+        index->initHasher(d, L);
+        index->initBucketer(L, nBits);
+        index->build_wo_sigs(n, data);
+        return index;
+    };
+
+
+    fprintf(fp.get(), "polytope_lccs_compact, L=%d\n", L);
+    std::vector<int> checked_candidates;
+    for(int check_k = 1; check_k <= 256; check_k*=2){
+        checked_candidates.push_back(check_k);
+    }
+    // std::vector<int> checked_candidates = {1};
+    const auto& fq = [&](Index &index, int k, int checked_candidate, const float* queryi, MinK_List* list) {
+        // int nCandidates = k+K*M;
+        int nCandidates = checked_candidate;
+        const auto& f = [&](int idx){
+            float angle = calc_angle(d, data[idx], queryi);
+            list->insert(angle, idx + 1);
+        };
+        index.query(nCandidates, queryi, f);
+    };
+
+    benchmarkMinklist(qn, query, ground_truth, checked_candidates, fp.get(), fif, fq);
+});

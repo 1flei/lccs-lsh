@@ -32,7 +32,7 @@ def run_ground_truth(datasets, dist='l2', isbinary=True):
         print(cmd)
         os.system(cmd)
 
-datasets = [Deep()]
+datasets = [Msong()]
 if __name__ == '__main__':
     run_ground_truth(datasets=datasets, dist='l2')
     run_ground_truth(datasets=datasets, dist='angle')

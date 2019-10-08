@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 		("bit_packed", "whether to use bit_packed hash table for FALCONN")
 
 		("binary_input", "read from binary input")
+		("normalized", "whether to normalize the dataset")
 
 		("alpha", value<double>(), "parameter used for some algorithms")
 		
@@ -128,7 +129,14 @@ int main(int argc, char **argv)
 	}
     cout << "finishing reading data, query and ground truth" << endl;
 
-
+	if(vm.count("normalized")){
+		for(int i=0;i<n; i++){
+			normalize(d, data[i]);
+		}
+		for(int i=0;i<qn; i++){
+			normalize(d, query[i]);
+		}
+	}
 
     using namespace MyCallbackRegister;
     if (!vm.count("algorithm_name")) {

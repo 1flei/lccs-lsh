@@ -13,7 +13,7 @@ namespace mylccs
 class MP_LCCS_L2
 {
 public:
-    MP_LCCS_L2(int n, int dim, int L, float W, int lookupLen=8, int defaultNProbe=2) 
+    MP_LCCS_L2(int n, int dim, int L, float W, int lookupLen=16, int defaultNProbe=2) 
         : nPnts(n), dim(dim), L(L), W(W), cm(n), 
         lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
         hasher(dim, L, W, lookupLen), bucketer(L, 1)
@@ -45,18 +45,26 @@ public:
         // int checkedCandidates = 4*nProbes;
         // int checkedCandidates = 16;
         int nProbes = defaultNProbe*L+1;
-        hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int lastIdx){
-            if(lastIdx==-1){
+        hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int firstIdx){
+            if(firstIdx==-1){
                 // printf("hq0\n");
                 // printVec(qcode.begin(), L);
                 bucketer.for_candidates(checkedCandidates, qcode, f);
                 // printf("hq0 done!!!\n");
             } else{
-                int startIdx = (lastIdx-lookupLen+L)%L;
-                // printf("hq[%d, %d]\n", startIdx, lastIdx);
-                // printVec(qcode.begin(), L);
-                bucketer.for_candidates_between(startIdx, lastIdx, checkedCandidates, qcode, f);
-                // printf("hq[%d, %d] done!!!\n", startIdx, lastIdx);
+                int startIdx = (firstIdx-lookupLen+L+1)%L;
+                //let startIdx be the first idx such that matched_loc will be affected
+                for(int i=1;i<16;i++){
+                    int curloc = (firstIdx-i+L)%L;
+                    // printf("   %d, %d, %d\n", i, bucketer.res_lowlen[curloc], bucketer.res_highlen[curloc]);
+                    if(bucketer.res_lowlen[curloc] < i || bucketer.res_highlen[curloc] < i){
+                        startIdx = curloc;
+                        break;
+                    }
+                }
+                // printf("hq[%d, %d]!!!\n", startIdx, firstIdx);
+                bucketer.for_candidates_between(startIdx, firstIdx+1, checkedCandidates, qcode, f);
+                // printf("hq[%d, %d] DONE!!!\n", startIdx, firstIdx);
             }
         });
     }
@@ -114,17 +122,17 @@ public:
         // int checkedCandidates = 4*nProbes;
         // int checkedCandidates = 16;
         int nProbes = defaultNProbe*L+1;
-        hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int lastIdx){
-            if(lastIdx==-1){
+        hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int firstIdx){
+            if(firstIdx==-1){
                 // printf("hq0\n");
                 // printVec(qcode.begin(), L);
                 bucketer.for_candidates(checkedCandidates, qcode, f);
                 // printf("hq0 done!!!\n");
             } else{
-                int startIdx = (lastIdx-lookupLen+L)%L;
+                int startIdx = (firstIdx-lookupLen+L)%L;
                 // printf("hq[%d, %d]\n", startIdx, lastIdx);
                 // printVec(qcode.begin(), L);
-                bucketer.for_candidates_between(startIdx, lastIdx, checkedCandidates, qcode, f);
+                bucketer.for_candidates_between(startIdx, firstIdx, checkedCandidates, qcode, f);
                 // printf("hq[%d, %d] done!!!\n", startIdx, lastIdx);
             }
         });

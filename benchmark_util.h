@@ -127,8 +127,8 @@ void benchmark_multiplek(
     printf("Indexing Time: %f Seconds\n\n", indexing_time);
     fprintf(fp, "Indexing Time: %f Seconds\n\n", indexing_time);
 
-    printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
-    fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    // printf("memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
+    // fprintf(fp, "memory-usage: %ld (bytes)\n", lsh->get_memory_usage());
     
     //since it is not possible to get the exact memory usage for some external library
     //going to use this value as the estimator of the memory usage of each method

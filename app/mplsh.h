@@ -63,6 +63,7 @@ public:
     void query(unsigned nCandidates, const float* query, MinK_List *list)
     {
         cm.clear();
+        // int checkdCnt=0;
         auto scanner = [&](int idx){
             if(!cm.isMarked(idx)){
                 cm.mark(idx);

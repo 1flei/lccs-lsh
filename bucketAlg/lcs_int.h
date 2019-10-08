@@ -246,9 +246,15 @@ namespace mylccs
 		}
 
 		//this function will set res_curidx, res_lowlen and res_highlen
-		void find_matched_loc(const std::vector<int32_t>& query)
+		void find_matched_loc(const std::vector<int32_t>& query, 
+				std::vector<int32_t>& res_curidx, 
+				std::vector<int32_t>& res_lowlen, 
+				std::vector<int32_t>& res_highlen)
 		{
 			const int32_t* queryp = (const int32_t*)&query[0];
+			res_curidx.resize(dim);
+			res_lowlen.resize(dim);
+			res_highlen.resize(dim);
 
 			//binary search
 			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
@@ -284,10 +290,11 @@ namespace mylccs
 			}
 		}
 
+		//simple scan strategy (high data locality)
 		template<typename F> 
 		void for_candidates_by_scan(int nScanStep, const std::vector<int32_t>& query, const F& f)
 		{
-			find_matched_loc(query);
+			find_matched_loc(query, res_curidx, res_lowlen, res_highlen);
 
             checked.clear();
 
@@ -325,7 +332,7 @@ namespace mylccs
 		void for_candidates_by_heap(int nCandidates, const std::vector<int32_t>& query, const F& f)
 		{
 			const int32_t* queryp = (const int32_t*)&query[0];
-			find_matched_loc(query);
+			find_matched_loc(query, res_curidx, res_lowlen, res_highlen);
 
 			std::vector<CandidateLoc> pool;
 			pool.reserve(nSearchLoc * 2 + nCandidates*nSearchLoc);
@@ -349,87 +356,49 @@ namespace mylccs
 			while(!candQue.empty() && checkCnt<nCandidates){
 				const auto& curCand = candQue.top();
 
+				// printf("%d, %d, %d, %d\n", curCand.qloc, curCand.len, curCand.idx, curCand.dir);
+
 				int matchingIdx = getidx(curCand.qloc, curCand.idx);
 				tryCheck(matchingIdx);
 
 				if(curCand.idx + curCand.dir >= 0 && curCand.idx + curCand.dir < nPnts){
-					auto [len, isless] = match_util(queryp, get_datap(curCand.qloc, curCand.idx), curCand.qloc, 0);
-					candQue.emplace(curCand.qloc, curCand.idx, len, curCand.dir);
+					int newidx = curCand.idx + curCand.dir;
+					int len;
+					bool isless;
+					if(curCand.len == dim){
+						std::tie(len, isless) = match_util(queryp, get_datap(curCand.qloc, newidx), curCand.qloc, 0);
+					} else {
+						//heuristic, use curLen-1 to estimate newlen and avoid to re-compute the matched_length
+						len = curCand.len - 1;
+					}
+					
+					//full heap
+					// auto [len, isless] = match_util(queryp, get_datap(curCand.qloc, newidx), curCand.qloc, 0);
+					candQue.emplace(curCand.qloc, newidx, len, curCand.dir);
 				}
+				candQue.pop();
 			}
 		}
 
-		//using simple scan strategy (high data locality)
 		template<typename F>
-		void for_candidates(int nCandidates, const std::vector<int32_t>& query, const F& f) 
+		void for_candidates(int nScanStep, const std::vector<int32_t>& query, const F& f) 
 		{
+			for_candidates_by_scan(nScanStep, query, f);
+			// for_candidates_by_heap(nScanStep*dim, query, f);
+		}
+
+
+
+		void find_matched_loc_between(int start, int end, const std::vector<int32_t>& query, 
+				std::vector<int32_t>& res_curidx, 
+				std::vector<int32_t>& res_lowlen, 
+				std::vector<int32_t>& res_highlen)
+		{
+			res_curidx.resize(dim);
+			res_lowlen.resize(dim);
+			res_highlen.resize(dim);
 			const int32_t* queryp = (const int32_t*)&query[0];
-
-			// std::vector<CandidateLoc> pool;
-			// pool.reserve(nSearchLoc * 2 + nCandidates*nSearchLoc);
-			// std::priority_queue<CandidateLoc, std::vector<CandidateLoc>> candidates(std::less<CandidateLoc>() , std::move(pool));
-
-			// printf("querySig=\n");
-			// printVec(query.begin(), dim);
-
-            // inque.clear();
-            checked.clear();
-            int checkCounter = 0;
-            //call the callback function if not checked and increase the counter
-            const auto& tryCheck = [&](int dataidx){
-				if (!checked.isMarked(dataidx)) {
-                    checked.mark(dataidx);
-					f(dataidx);
-                    checkCounter++;
-				}
-            };
-            const auto& tryCheckLoc = [&](int curidx, int d){
-				for(int i=curidx;i>=0 && curidx-i<nCandidates;--i){
-					int matchingIdx = getidx(d, i);
-					tryCheck(matchingIdx);
-				}
-				for(int i=curidx+1;i<nPnts && i-curidx-1<nCandidates;i++){
-					int matchingIdx = getidx(d, i);
-					tryCheck(matchingIdx);
-				}
-            };
-
-			// printf("new q!!!!\n\n");
-
-			auto [curidx, lowlen, highlen] = get_loc(queryp, 0);
-			//store the res for multi-probe lsh
-			res_curidx[0] = curidx;
-			res_lowlen[0] = lowlen;
-			res_highlen[0] = highlen;
-
-			tryCheckLoc(curidx, 0);
-
-			for(int d_=1;d_<nSearchLoc;d_++){
-				int d = d_*step;
-				int lowidx = next_link[d-step][curidx];
-				int highidx = next_link[d-step][curidx+1];
-
-				if(lowlen < step){
-					lowlen = 0;
-					lowidx = 0;
-				} else if(lowlen!=dim){
-					lowlen -= step;
-				}
-
-				if(highlen < step){
-					highlen = 0;
-					highidx = nPnts-1;
-				} else if(highlen!=dim){
-					highlen -= step;
-				}
-				// printf("  lidx, llen, hidx, hlen=%d, %d, %d, %d\n", lowidx, lowlen, highidx, highlen);
-				std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
-				//store the res for multi-probe lsh
-				res_curidx[d] = curidx;
-				res_lowlen[d] = lowlen;
-				res_highlen[d] = highlen;
-				tryCheckLoc(curidx, d);
-			}
+			//not implemented yet
 		}
 
 		//check between start and end only
@@ -473,14 +442,17 @@ namespace mylccs
 			// printf("new q!!!!\n\n");
 
 			// the information is kept before
-			// auto [curidx, lowlen, highlen] = get_loc(queryp, startLoc);
-			int curidx = res_curidx[startLoc];
-			int lowlen = 0;
-			int highlen = 0;
-			// tryCheckLoc(curidx, startLoc);
+			auto [curidx, lowlen, highlen] = get_loc(queryp, startLoc);
+			// int curidx = res_curidx[startLoc];
+			// int lowlen = 0;
+			// int highlen = 0;
+			tryCheckLoc(curidx, startLoc);
 
 			for(int d_=1;d_<nSearchLoc;d_++){
 				int d = (startLoc+d_*step)%dim;
+				if(d==endLoc){
+					return ;
+				}
 				int prevd = (d-step+dim)%dim;
 				int lowidx = next_link[prevd][curidx];
 				int highidx = next_link[prevd][curidx+1];
@@ -498,14 +470,87 @@ namespace mylccs
 				} else if(highlen!=dim){
 					highlen -= step;
 				}
-				// printf("  lidx, llen, hidx, hlen=%d, %d, %d, %d\n", lowidx, lowlen, highidx, highlen);
 				std::tie(curidx, lowlen, highlen) = get_loc_mixed(queryp, d, lowidx, lowlen, highidx, highlen);
+				// printf("  qloc=%d, curidx, llen, hlen=%d, %d, %d\n", d, curidx, lowlen, highlen);
 				tryCheckLoc(curidx, d);
-
-				if(d==endLoc){
-					return ;
-				}
 			}
 		}
+	};
+
+
+	class LCCS_SORT_COMPACT
+	{
+	public:
+		LCCS_SORT_COMPACT(int dim, int nBits)
+			:dim(dim), nBits(nBits), newVecLen((dim*nBits + 31) / 32), lccs_index(newVecLen, 1), mask((1<<nBits)-1)
+		{}
+
+		int dim;
+		int nBits;
+		int newVecLen;
+		LCCS_SORT_INT lccs_index;
+		uint64_t mask;
+
+        void build(NDArray<2, int32_t>& data)
+        {
+			int len1 = data.lens[1];
+			assert(len1==dim);
+
+			printf("len=%d, newlen=%d, nBits=%d\n", len1, newVecLen, nBits);
+
+			compactCodes.resize({data.lens[0], newVecLen});
+
+			for(int i=0;i<data.lens[0];i++){
+				process_vec(len1, &data[i][0], &compactCodes[i][0]);
+				padding0(&compactCodes[i][0]);
+			}
+
+			lccs_index.build(compactCodes);
+        }
+
+		template<typename F>
+		void for_candidates(int nScanStep, const std::vector<int32_t>& query, const F& f) 
+		{
+			std::vector<int32_t> compact_query(newVecLen);
+
+			process_vec(query.size(), &query[0], &compact_query[0]);
+			padding1(&compact_query[0]);
+			lccs_index.for_candidates(nScanStep, compact_query, f);
+		}
+
+		template<typename F>
+		void for_candidates_between(int start, int end, int nCandidates, const std::vector<int32_t>& query, const F& f) 
+		{
+
+		}
+
+		void process_vec(int srclen, const int32_t* src, int32_t* des)
+		{
+			int curLoc = 0;
+			for(int j=0;j<srclen;j++){
+				int32_t codeij = src[j];
+
+				if(curLoc/32 != (curLoc+nBits-1)/32 ){
+					//seperate
+					int nleft = curLoc/32*32+32-curLoc;
+					des[curLoc/32] = (des[curLoc/32]<<nleft) | ((codeij & mask)>>(nBits-nleft));
+					des[curLoc/32+1] = src[j] & ((1ull<<nleft)-1);
+				} else{
+					des[curLoc/32] = (des[curLoc/32]<<nBits) | (codeij & mask);
+				}
+				curLoc += nBits;
+			}
+		}
+
+		void padding0(int32_t* xs) {
+			int nToPad = newVecLen* 32 - nBits * dim;
+			xs[newVecLen-1] = xs[newVecLen-1]<<nToPad;
+		}
+		void padding1(int32_t* xs) {
+			int nToPad = newVecLen* 32 - nBits * dim;
+			xs[newVecLen-1] = (xs[newVecLen-1]+1)<<nToPad-1;
+		}
+
+		NDArray<2, int32_t> compactCodes;
 	};
 }

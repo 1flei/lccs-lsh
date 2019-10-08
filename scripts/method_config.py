@@ -44,7 +44,7 @@ class E2LSH:
                     yield '-L %d -K %d'%(l, k)
 
 class MPLSH:
-    def __init__(self, Ks=[5, 6, 7, 8, 9, 10], Ls=[8, 16, 32, 64, 128, 256, 512], maxHasher=512, Ks_angle=[3, 4, 5, 6, 7, 8, 9, 10]):
+    def __init__(self, Ks=[5, 6, 7, 8, 9, 10], Ls=[8, 16, 32, 64, 128, 256, 512], maxHasher=512, Ks_angle=[2, 3, 4, 5, 6, 7, 8, 9, 10]):
         self.Ks = Ks
         self.Ls = Ls
         self.name = 'mplsh'
@@ -65,14 +65,16 @@ class MPLSH:
                 if k*l <=self.maxHasher:
                     yield '-L %d -K %d'%(l, k)
 
+    # def for_param_angle(self, distance):
+    #     #bit-packed version
+    #     Ks = self.Ks if self.Ks_angle is None else self.Ks_angle
+    #     for l in self.Ls:
+    #         for k in Ks:
+    #             yield '-L %d -K %d --bit_packed'%(l, k)
     def for_param_angle(self, distance):
+        #linear-probing version
         Ks = self.Ks if self.Ks_angle is None else self.Ks_angle
         for l in self.Ls:
             for k in Ks:
                 if k*l <=self.maxHasher:
-                    # if k <= 4:
-                    #     #will consume too much memory
-                    #     yield '-L %d -K %d --bit_packed'%(l, k)
-                    # else:
-                    #     yield '-L %d -K %d'%(l, k)
                     yield '-L %d -K %d'%(l, k)

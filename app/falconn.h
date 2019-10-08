@@ -28,15 +28,24 @@ public:
         params.l = L;
         params.distance_function = falconn::DistanceFunction::EuclideanSquared;
         params.num_rotations = nRotations;
-        params.k = K;
-        params.last_cp_dimension = d;
+
+        if(!useBitPackedHashTable){
+            params.k = K;
+            params.last_cp_dimension = d;
+            params.storage_hash_table = falconn::StorageHashTable::LinearProbingHashTable;
+        } else {
+            //if use bitPackedHash, let k be the num of bits used instead of the number of hashers cancatenated
+            //and let FALCONN itself setting the number of hashers and last_cp_dim
+            int nBits = K;
+            falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
+
+            printf("calculated_k=%d, last_cp_dim=%d\n", params.k, params.last_cp_dimension);
+            params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
+        }
 
         // falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
         // printf("num_hash_functions=%d, last_cp_dimensions=%d\n", params.k, params.last_cp_dimension);
         params.num_setup_threads = 1;
-        params.storage_hash_table = useBitPackedHashTable ? 
-                falconn::StorageHashTable::BitPackedFlatHashTable : 
-                falconn::StorageHashTable::LinearProbingHashTable;
     }
     
     std::vector<PointType> data_vec;

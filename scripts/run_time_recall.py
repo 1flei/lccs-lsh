@@ -88,6 +88,7 @@ possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove()]
 
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
-    run_alg([LCCS(), MPLSH()], [Deep()], 'l2')
+    # run_alg([LCCS_MP(), C2LSH(), E2LSH()], [Deep()], 'l2')
+    run_alg([LCCS(), MPLSH(), C2LSH(), E2LSH()], [Deep()], 'angle')
     # run_alg([LCCS_MP()], [MNIST784()], 'angle')
     # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')
