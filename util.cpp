@@ -152,18 +152,6 @@ int read_ground_truth(				// read ground truth results from disk
 	return 0;
 }
 
-// -----------------------------------------------------------------------------
-float calc_inner_product(			// calc inner product
-	int   dim,							// dimension
-	const float *p1,					// 1st point
-	const float *p2)					// 2nd point
-{
-	double ret = 0.0f;
-	for (int i = 0; i < dim; ++i) {
-		ret += (p1[i] * p2[i]);
-	}
-	return ret;
-}
 
 void normalize(
 	int dim, 
@@ -186,6 +174,15 @@ float calc_angle(				// calc angle
 	const float *p2)					// 2nd point
 {
 	return acos(calc_cosangle(dim, p1, p2));
+}
+
+// -----------------------------------------------------------------------------
+float calc_angle_normalized(				// calc angle
+	int   dim,							// dimension
+	const float *p1,					// 1st point
+	const float *p2)					// 2nd point
+{
+	return acos(calc_inner_product(dim, p1, p2));
 }
 
 // -----------------------------------------------------------------------------

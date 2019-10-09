@@ -59,7 +59,9 @@ public:
         }
         table = falconn::construct_table<PointType>(data_vec, params);
     }
-    void query(unsigned nProbes, const float* query, MinK_List *list)
+
+    template<class F>
+    void query(unsigned nProbes, const float* query, const F& f)
     {
         int maxNumberCandidates = nPnts/10;
         std::unique_ptr<falconn::LSHNearestNeighborQuery<PointType>> queryObjectPtr =
@@ -68,9 +70,7 @@ public:
         std::vector<int32_t> candidates;
         queryObjectPtr->get_unique_candidates(MPoint((float*)query, dim), &candidates);
         for(int idx:candidates){
-            float l2dist = calc_angle(dim, data[idx], query);
-            // printf("%d, %f\n", idx, l2dist);
-            list->insert(l2dist, idx + 1);
+            f(idx);
         }
     }
 

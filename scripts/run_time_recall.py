@@ -36,7 +36,7 @@ def get_dataset_distance_params(ds, distance):
     if distance=='l2':
         return '-r %f -G %s'%(ds.r, get_grount_truth_path(ds, distance))
     elif distance == 'angle':
-        return '-G %s'%(get_grount_truth_path(ds, distance))
+        return '--normalized -G %s'%(get_grount_truth_path(ds, distance))
     return ''
 
 def get_common_params(ds, method, maxqn=100, curtime=None):
@@ -89,6 +89,7 @@ possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove()]
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
     # run_alg([LCCS_MP(), C2LSH(), E2LSH()], [Deep()], 'l2')
-    run_alg([LCCS(), MPLSH(), C2LSH(), E2LSH()], [Deep()], 'angle')
+    run_alg([LCCS_MP(), LCCS(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'angle')
+    # run_alg([LCCS(), LCCS_MP(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'l2')
     # run_alg([LCCS_MP()], [MNIST784()], 'angle')
     # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')

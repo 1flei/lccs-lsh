@@ -4,6 +4,7 @@
 #include "falconn/core/polytope_hash.h"
 #include "../util.h"
 
+//data is assumed to be normalized
 //a wrapper of polytope hasher wrapper using falconn library
 class PolytopeHasher
 {
@@ -15,10 +16,10 @@ public:
     using TransformedVectorType = Hasher::TransformedVectorType;
 
     int dim;
-    int l;
+    // int l;
+    int sigdim;
     int num_rotations;
     int last_cp_dim;
-    int sigdim;
     Hasher hasher;
     Transformer transfromer;
 
@@ -42,8 +43,8 @@ public:
         //assume memory is allocated for ret
         Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
 
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
-        hasher.hash(normalized_data_v, &ret, &transformedVec);
+        // Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
+        hasher.hash(data_v, &ret, &transformedVec);
         return ret;
     }
 
@@ -53,8 +54,8 @@ public:
         //assume memory is allocated for ret
         Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
 
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
-        hasher.hash(normalized_data_v, &res, &transformedVec);
+        // Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
+        hasher.hash(data_v, &res, &transformedVec);
         std::copy(res.begin(), res.end(), ret);
     }
 

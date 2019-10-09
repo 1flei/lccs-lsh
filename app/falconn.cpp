@@ -4,7 +4,7 @@ using namespace std;
 using namespace MyCallbackRegister;
 
 bool FALCONN_REGISTED = registerCallback("falconn",
-		"n qn d L dataset_filename queryset_filename ground_truth_filename output_filename", [](){
+		"n qn d L normalized dataset_filename queryset_filename ground_truth_filename output_filename", [](){
 	using namespace MyCallbackRegister;
 	int n = argAs<int>("n");
 	int qn = argAs<int>("qn");
@@ -23,6 +23,7 @@ bool FALCONN_REGISTED = registerCallback("falconn",
 
     int numRotation = 1;
 
+    printf("is_normalized=%d\n", hasArg("normalized"));
     // typedef MPLSH Index;
     typedef FALCONN_INDEX Index;
     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_filename.c_str(), "a+"), &fclose);
@@ -38,7 +39,11 @@ bool FALCONN_REGISTED = registerCallback("falconn",
 
     const auto& fq = [&](Index &index, int k, int nProbes, const float* queryi, MinK_List* list) {
         // int nCandidates = k+K*M;
-        index.query(nProbes*L, queryi, list);
+        const auto& f = [&](int idx){
+            float angle = calc_angle_normalized(d, data[idx], queryi);
+            list->insert(angle, idx + 1);
+        };
+        index.query(nProbes*L, queryi, f);
     };
 
     benchmarkMinklist(qn, query, ground_truth, nProbess, fp.get(), fif, fq);

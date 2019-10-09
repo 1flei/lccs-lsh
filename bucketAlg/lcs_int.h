@@ -298,13 +298,13 @@ namespace mylccs
 
             checked.clear();
 
-            const auto& tryCheck = [&](int dataidx){
+            const auto tryCheck = [&](int dataidx){
 				if (!checked.isMarked(dataidx)) {
                     checked.mark(dataidx);
 					f(dataidx);
 				}
             };
-            const auto& tryCheckLoc = [&](int curidx, int d){
+            const auto tryCheckLoc = [&](int curidx, int d){
 				for(int i=curidx;i>=0 && curidx-i<nScanStep;--i){
 					int matchingIdx = getidx(d, i);
 					tryCheck(matchingIdx);
@@ -548,7 +548,7 @@ namespace mylccs
 		}
 		void padding1(int32_t* xs) {
 			int nToPad = newVecLen* 32 - nBits * dim;
-			xs[newVecLen-1] = (xs[newVecLen-1]+1)<<nToPad-1;
+			xs[newVecLen-1] = ((xs[newVecLen-1]+1)<<nToPad)-1;
 		}
 
 		NDArray<2, int32_t> compactCodes;

@@ -35,7 +35,7 @@ void benchmark(
     fprintf(fp, "Indexing Time: %f Seconds\n\n", indexing_time);
     
     // int kMIPs[] = { 1, 2, 5, 10, 100 };
-    int kMIPs[] = { 1, 2, 5, 10};
+    int kMIPs[] = { 1, 2, 5, 10, 20, 50, 100};
     int max_round = sizeof(kMIPs) / sizeof(int);
     int top_k = -1;
 
@@ -136,7 +136,7 @@ void benchmark_multiplek(
     fprintf(fp, "Estimated Memory Usage: %ld Bytes\n\n", indexingMemory);
 
     // int kMIPs[] = { 1, 2, 5, 10, 100 };
-    int kMIPs[] = { 1, 2, 5, 10};
+    int kMIPs[] = { 1, 2, 5, 10, 20, 50, 100};
     int max_round = sizeof(kMIPs) / sizeof(int);
     int top_k = -1;
 

@@ -28,8 +28,8 @@ def to_binary(dataset_name):
 
 
 # to_binary('Mnist')
-# to_binary('Sift')
+to_binary('Sift')
 # to_binary('Gist')
 # to_binary('Mnist784')
-to_binary('glove')
+# to_binary('glove')
 # to_binary('Trevi')

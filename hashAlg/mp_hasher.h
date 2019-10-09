@@ -2,14 +2,15 @@
 
 #include "../hashAlg/e2eigen.h"
 #include "../hashAlg/polytope.h"
+#include <queue>
 
 //multi-probe version of E2Eigen
 class E2MP
 {
 public:
     using SigType = int32_t;
-    E2MP(int d, int K, double r, int maxSpan)      //dim of data object, #hasher, radius 
-        :dim(d), K(K), r(r), maxSpan(maxSpan)
+    E2MP(int d, int K, double r, int maxProbePerDim=16)      //dim of data object, #hasher, radius 
+        :dim(d), K(K), r(r), maxProbePerDim(maxProbePerDim)
     {
         assert(d > 0 && K > 0);
 
@@ -155,7 +156,6 @@ public:
 
     void genPertubations()
     {
-        const int maxProbePerDim = 16;
         int maxProbe = maxProbePerDim*sigdim;
 
         pertubations.reserve(maxProbe+16);
@@ -210,11 +210,13 @@ public:
             pertubations.back().emplace_back(i, -1);
         }
         //lvl 2, bounded by 2**maxSpan
+        const int maxSpan = 16;
         [&](){
             for(int span=1;span<maxSpan;span++){
                 for(int i=0;i<sigdim;i++){
                     for(int lvl=2;lvl<=span;lvl++){
                         if(multi_loop(lvl, i, i+span) ){
+                            //jump from multiple level loop
                             return ;
                         }
                     }
@@ -261,7 +263,7 @@ public:
     int dim, K;
     Scalar r;
     int sigdim;
-    int maxSpan;
+    int maxProbePerDim;
 protected:
     
     Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> p;
@@ -296,25 +298,34 @@ public:
     int l;
     int num_rotations;
     int last_cp_dim;
-    int maxSpan;
+    int maxProbePerDim;
     int sigdim;
     Hasher hasher;
     Transformer transfromer;
     TransformedVectorType transformedVec;
 
     CrossPolytopeMP(int vector_dim,
-                int l, int last_cp_dim=16, int maxSpan=8, int num_rotations=1,
+                int l, int maxProbePerDim=8, int num_rotations=1,
                 int seed=666)
         :dim(vector_dim), 
          sigdim(l), 
          num_rotations(num_rotations), 
-         last_cp_dim(last_cp_dim), 
+         last_cp_dim(vector_dim), 
          //k=1
-         maxSpan(maxSpan), 
+         maxProbePerDim(maxProbePerDim), 
          hasher(vector_dim, 1, l, num_rotations, last_cp_dim, seed), 
          transfromer(hasher)
     {
         hasher.reserve_transformed_vector_memory(&transformedVec);
+        printf("cp_mp_hasher: dim=%d, l=%d, maxProbePerDim=%d\n", vector_dim, l, maxProbePerDim);
+
+        idx.resize(sigdim);
+        for(int i=0;i<sigdim;i++){
+            idx[i].resize(vector_dim*2);
+            for(int j=0;j<vector_dim*2;j++){
+                idx[i][j] = j;
+            }
+        }
     }
 
     std::vector<SigType> getSig(const Scalar *data)
@@ -323,8 +334,7 @@ public:
         //assume memory is allocated for ret
         Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
 
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
-        hasher.hash(normalized_data_v, &ret, &transformedVec);
+        hasher.hash(data_v, &ret, &transformedVec);
         return ret;
     }
 
@@ -334,11 +344,21 @@ public:
         //assume memory is allocated for ret
         Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
 
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
-        hasher.hash(normalized_data_v, &res, &transformedVec);
+        hasher.hash(data_v, &res, &transformedVec);
         std::copy(res.begin(), res.end(), ret);
     }
 
+    struct ProbeCandidate
+    {
+        double hashValDiff;
+        int loc;
+        int value;
+        ProbeCandidate(double d, int loc, int v): hashValDiff(d), loc(loc), value(v) {}
+
+        bool operator<(const ProbeCandidate& p) const {
+            return hashValDiff < p.hashValDiff;
+        }
+    };
 
     //cannot easily apply static pertubations, will do dynamic one
     //this version considers the span of pertubation as well
@@ -346,35 +366,52 @@ public:
     template<class F> 
     void forSig(int nProbes, const Scalar *data, const F& f)
     {
+        if(nProbes <= 0){
+            return ;
+        }
+
         std::vector<SigType> ret(sigdim);
         //assume memory is allocated for ret
         Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
-
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> normalized_data_v = data_v.normalized();
-        std::unique_ptr<HashHelper> fht = std::make_unique<HashHelper>(dim);
-        hasher.compute_rotated_vectors(normalized_data_v, &transformedVec, fht.get());
-        // hasher.compute_cp_hashes(transformedVec, 1, l_, rotation_dim_,
-        //               log_rotation_dim_, last_cp_dim_, last_cp_log_dim_,
-        //               result);
-        printf("transformed vector\n");
-        for(int i=0;i<transformedVec.size();i++){
-            printVec(&transformedVec[i][0], dim);
+        if(nProbes <= 1){
+            hasher.hash(data_v, &ret, &transformedVec);
+            f(ret, -1);
+            return ;
         }
 
-        hasher.hash(normalized_data_v, &ret, &transformedVec);
+        std::unique_ptr<HashHelper> fht = std::make_unique<HashHelper>(dim);
+        hasher.compute_rotated_vectors(data_v, &transformedVec, fht.get());
+        const int maxProbePerDim = 16;
+        
+        for(int i=0;i<sigdim;i++){
+            const auto cmpf = [&](int a, int b){
+                double x = a<dim ? transformedVec[i][a] : -transformedVec[i][a-dim];
+                double y = b<dim ? transformedVec[i][b] : -transformedVec[i][b-dim];
+                return x > y;
+            };
+            std::nth_element(idx[i].begin(), idx[i].begin()+maxProbePerDim+1, idx[i].end(), cmpf);
+            std::sort(idx[i].begin(), idx[i].begin()+maxProbePerDim+1, cmpf);
 
+            // printVec(&transformedVec[i][0], dim);
+            // printf("idx=%d, %d, ... \n\n", idx[i][0], idx[i][1]);
+
+            ret[i] = idx[i][0];
+        }
+
+        //first probe
         f(ret, -1);
-
-        // for(int i=0;i<nProbes-1;i++){
-        //     for(Pert& p:pertubations[i]){
-        //         ret[p.idx] += p.shift;
-        //     }
-        //     f(ret, pertubations[i][0].idx);
-        //     for(Pert& p:pertubations[i]){
-        //         ret[p.idx] -= p.shift;
-        //     }
-        // }
+        int probeCnt = 1;
+        for(int j=1;j<maxProbePerDim+1;j++){
+            for(int i=0;i<idx.size();i++){
+                int tmp = ret[i];
+                ret[i] = idx[i][j];
+                f(ret, i);
+                ret[i] = tmp;
+            }
+        }
     }
+
+    std::vector<std::vector<int> > idx;
 
     int64_t get_memory_usage()
     {

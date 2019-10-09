@@ -13,10 +13,10 @@ namespace mylccs
 class MP_LCCS_L2
 {
 public:
-    MP_LCCS_L2(int n, int dim, int L, float W, int lookupLen=16, int defaultNProbe=2) 
+    MP_LCCS_L2(int n, int dim, int L, float W, int defaultNProbe=2) 
         : nPnts(n), dim(dim), L(L), W(W), cm(n), 
         lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
-        hasher(dim, L, W, lookupLen), bucketer(L, 1)
+        hasher(dim, L, W, defaultNProbe), bucketer(L, 1)
     {
     };
     
@@ -90,10 +90,10 @@ public:
 class MP_LCCS_CP
 {
 public:
-    MP_LCCS_CP(int n, int dim, int L, int cpDim, int lookupLen=8, int defaultNProbe=2) 
-        : nPnts(n), dim(dim), L(L), cpDim(cpDim), cm(n), 
+    MP_LCCS_CP(int n, int dim, int L, int defaultNProbe=2) 
+        : nPnts(n), dim(dim), L(L), cm(n), 
         lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
-        hasher(dim, L, cpDim, lookupLen), bucketer(L, 1)
+        hasher(dim, L, defaultNProbe), bucketer(L, 1)
     {
     };
     
@@ -129,11 +129,19 @@ public:
                 bucketer.for_candidates(checkedCandidates, qcode, f);
                 // printf("hq0 done!!!\n");
             } else{
-                int startIdx = (firstIdx-lookupLen+L)%L;
-                // printf("hq[%d, %d]\n", startIdx, lastIdx);
-                // printVec(qcode.begin(), L);
-                bucketer.for_candidates_between(startIdx, firstIdx, checkedCandidates, qcode, f);
-                // printf("hq[%d, %d] done!!!\n", startIdx, lastIdx);
+                int startIdx = (firstIdx-lookupLen+L+1)%L;
+                //let startIdx be the first idx such that matched_loc will be affected
+                for(int i=1;i<16;i++){
+                    int curloc = (firstIdx-i+L)%L;
+                    // printf("   %d, %d, %d\n", i, bucketer.res_lowlen[curloc], bucketer.res_highlen[curloc]);
+                    if(bucketer.res_lowlen[curloc] < i || bucketer.res_highlen[curloc] < i){
+                        startIdx = curloc;
+                        break;
+                    }
+                }
+                // printf("hq[%d, %d]!!!\n", startIdx, firstIdx);
+                bucketer.for_candidates_between(startIdx, firstIdx+1, checkedCandidates, qcode, f);
+                // printf("hq[%d, %d] DONE!!!\n", startIdx, firstIdx);
             }
         });
     }
