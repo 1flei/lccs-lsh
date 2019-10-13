@@ -16,8 +16,9 @@ void LCCS_LSH_REORDER::build(NDArray<2, int32_t> &hashCodes)
 
     // std::random_uniform_int
     std::uniform_int_distribution<int> uniform(0, M-1);
-    std::random_device rd;
-    std::default_random_engine rng(rd());
+    // std::random_device rd;
+    // std::default_random_engine rng(rd());
+    std::default_random_engine rng(GLOBAL_SEED);
 
     for(int i=0;i<reorderLen;i++){
         reorders.push_back(uniform(rng));

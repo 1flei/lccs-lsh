@@ -8,8 +8,9 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable -Wno-int-in-bool-context")
+set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-variable -Wno-int-in-bool-context -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -fsanitize=undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 

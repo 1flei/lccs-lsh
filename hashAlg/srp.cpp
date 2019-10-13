@@ -12,8 +12,9 @@ SRP::SRP(int d, int K, int M)
     assert(d > 0 && K > 0 && M > 0);
 
     std::normal_distribution<double> normalDistribution(0.);
-    std::random_device rd;
-    std::default_random_engine rng(rd());
+    // std::random_device rd;
+    // std::default_random_engine rng(rd());
+    std::default_random_engine rng(GLOBAL_SEED);
     for (int i = 0; i < K * M * d; i++) {
         p[i] = normalDistribution(rng);
     }
@@ -68,8 +69,9 @@ SRPCompact::SRPCompact(int d, int K)
     assert(d > 0 && K > 0);
 
     std::normal_distribution<double> normalDistribution(0.);
-    std::random_device rd;
-    std::default_random_engine rng(rd());
+    // std::random_device rd;
+    // std::default_random_engine rng(rd());
+    std::default_random_engine rng(GLOBAL_SEED);
     for (int i = 0; i < K * d; i++) {
         p[i] = normalDistribution(rng);
     }

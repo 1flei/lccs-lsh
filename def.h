@@ -39,4 +39,6 @@ const int   MAX_BLOCK_NUM = 5000;
 typedef float Scalar;
 typedef int32_t SigType;
 
+const long unsigned GLOBAL_SEED = 666;
+
 #endif // __DEF_H

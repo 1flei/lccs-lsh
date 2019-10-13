@@ -96,6 +96,19 @@ public:
         hasher(dim, L, defaultNProbe), bucketer(L, 1)
     {
     };
+    int nPnts;
+    int dim;
+    int L;
+    CountMarker cm;
+    int lookupLen;
+    int defaultNProbe;
+    CrossPolytopeMP hasher;
+
+    const float** data;
+
+    NDArray<2, SigType> codes;
+
+    LCCS_SORT_INT bucketer; 
     
     void build(const Scalar** data)
     {
@@ -147,20 +160,6 @@ public:
     }
 
 
-    int nPnts;
-    int dim;
-    int L;
-    int cpDim;
-    CountMarker cm;
-    int lookupLen;
-    int defaultNProbe;
-
-    const float** data;
-
-    NDArray<2, SigType> codes;
-
-    CrossPolytopeMP hasher;
-    LCCS_SORT_INT bucketer; 
 };
 
 }

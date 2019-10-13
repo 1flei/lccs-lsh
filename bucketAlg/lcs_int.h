@@ -95,7 +95,7 @@ namespace mylccs
 		//bucket-sort leveraging extents
 		void init_sorted_idx()
 		{
-			int TableSize = (1<<logn)+1;
+			// int TableSize = (1<<logn)+1;
 			sorted_idx.resize(dim);
 			for (int d = 0; d < dim; d++) {
 				sorted_idx[d].resize(nPnts);

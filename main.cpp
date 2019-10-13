@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	string datasetFilename, queryFilename, weightFilename, groundtruthFilename, outputFilename;
 
 	// srand(time(NULL));
-	srand(666);
+	srand(GLOBAL_SEED);
 
     // Declare the supported options.
     options_description desc("Allowed options");

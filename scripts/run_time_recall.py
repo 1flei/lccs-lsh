@@ -84,12 +84,12 @@ def run_alg(method_obj, dataset, distance, curtime=None):
 
 possible_algs = [LCCS(), LCCS_MP(), C2LSH(), E2LSH(), MPLSH()]
 possible_distances = ['l2', 'angle']
-possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove()]
+possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
     # run_alg([LCCS_MP(), C2LSH(), E2LSH()], [Deep()], 'l2')
-    run_alg([LCCS_MP(), LCCS(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'angle')
+    # run_alg([LCCS_MP()], [Deep()], 'angle')
     # run_alg([LCCS(), LCCS_MP(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'l2')
-    # run_alg([LCCS_MP()], [MNIST784()], 'angle')
+    run_alg([LCCS(), LCCS_MP(), C2LSH(), E2LSH(), MPLSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
     # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')

@@ -16,8 +16,9 @@ public:
 
         std::normal_distribution<double> normal(0.);
         std::uniform_real_distribution<double> uniform(0., r);
-        std::random_device rd;
-        std::default_random_engine rng(rd());
+        // std::random_device rd;
+        // std::default_random_engine rng(rd());
+        std::default_random_engine rng(GLOBAL_SEED);
 
         p.resize(K, d);
         b.resize(K);
@@ -33,6 +34,10 @@ public:
         sigdim = K;
 
         genPertubations();
+        probe_indices.resize(probes.size());
+        for(int i=0;i<probe_indices.size();i++){
+            probe_indices[i] = i;
+        }
     }
     ~E2MP() {}
     std::vector<SigType> getSig(const Scalar *data)
@@ -52,186 +57,77 @@ public:
         ret_v = ret_r.cast<SigType>();
     }
 
-    // static probing is better than dynamic probing
-    // f :: vect<SigT>> -> last_pertubation_idx -> IO
-    // template<class F> 
-    // void forSig(int nProbes, const Scalar *data, const F& f)
-    // {
-    //     std::vector<SigType> ret(sigdim);
-
-    //     Eigen::Map<const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> > data_v(data, dim);
-    //     Eigen::Map<Eigen::Matrix<SigType, Eigen::Dynamic, 1> > cur_sig(&ret[0], sigdim);
-
-    //     // Eigen::Vector<Scalar, Eigen::Dynamic> sig = (p*data_v+b)/r;
-    //     auto sig = (p*data_v+b)/r;
-    //     cur_sig = sig.cast<int32_t>();
-
-    //     int probeCnt = 0;
-
-    //     //return isEnd
-    //     const auto tryProbe = [&](int last_idx) -> bool {
-    //         probeCnt++;
-    //         f(ret, last_idx);
-    //         if(probeCnt>=nProbes){
-    //             return true; 
-    //         }
-    //         return false;
-    //     };
-
-    //     //return isEnd
-    //     const auto multi_loop = [&](int level) -> bool{
-    //         auto multi_loop_impl = [&](int level, int start, auto& multi_loop_ref) -> bool {
-    //             if(level==0){
-    //                 return tryProbe(start);
-    //             }
-
-    //             for(int i=start;i<sigdim;i++){
-    //                 ret[i]+=1;
-    //                 if(multi_loop_ref(level-1, i+1, multi_loop_ref)){
-    //                     return true;
-    //                 }
-    //                 ret[i]-=2;
-    //                 if(multi_loop_ref(level-1, i+1, multi_loop_ref)){
-    //                     return true;
-    //                 }
-    //                 ret[i]+=1;                
-    //             }
-    //             return false;
-    //         };
-    //         return multi_loop_impl(level, 0, multi_loop_impl);
-    //     };
-
-    //     //lvl 0
-    //     tryProbe(-1);
-
-    //     //lvl 1
-    //     for(int i=0;i<sigdim;i++){
-    //         ret[i]+=1;
-    //         if(tryProbe(i)){
-    //             return ;
-    //         }
-    //         ret[i]-=2;
-    //         if(tryProbe(i)){
-    //             return ;
-    //         }
-    //         ret[i]+=1;
-    //     }
-
-    //     //lvl 2, expand the lambda
-    //     for(int i=0;i<sigdim;i++){
-    //         ret[i]+=1;
-    //         for(int j=i+1;j<sigdim;j++){
-    //             ret[j]+=1;
-    //             if(tryProbe(j)){
-    //                 return ;
-    //             }
-    //             ret[j]-=2;
-    //             if(tryProbe(j)){
-    //                 return ;
-    //             }
-    //             ret[j]+=1;
-    //         }
-    //         ret[i]-=2;
-    //         for(int j=i+1;j<sigdim;j++){
-    //             ret[j]+=1;
-    //             if(tryProbe(j)){
-    //                 return ;
-    //             }
-    //             ret[j]-=2;
-    //             if(tryProbe(j)){
-    //                 return ;
-    //             }
-    //             ret[j]+=1;
-    //         }
-    //         ret[i]+=1;
-    //     }
-    //     //theoretically will be until 9, and then pertabute a dimension for more than one step
-    //     //this may be enough for nProbe < ~O(m^9)
-    //     for(int lvl=3;lvl<=9;lvl++){
-    //         if(multi_loop(lvl)){
-    //             return; 
-    //         }
-    //     }
-    // }
-
     void genPertubations()
     {
-        int maxProbe = maxProbePerDim*sigdim;
+        int maxProbe = 128*sigdim;
 
-        pertubations.reserve(maxProbe+16);
+        probes.reserve(maxProbe+16);
         //return isend
-        const auto multi_loop = [&](int level, int start, int end) -> bool{
-            auto multi_loop_impl = [&](int level, int start, int end, std::vector<Pert>& cur, auto& multi_loop_ref) -> bool{
-                if(level==1){
-                    //will copy
-                    pertubations.push_back(cur);
-                    pertubations.back().emplace_back((end-1)%dim, 1);
-                    pertubations.push_back(cur);
-                    pertubations.back().emplace_back((end-1)%dim, -1);
-                    return pertubations.size() >= maxProbe;
-                }
-
-                for(int i=start;i+level<=end;i++){
-                    cur.emplace_back(i%dim, 1);
-                    if(multi_loop_ref(level-1, i+1, end, cur, multi_loop_ref) ){
-                        return true;
-                    }
-                    cur.pop_back();
-                    cur.emplace_back(i%dim, -1);
-                    if( multi_loop_ref(level-1, i+1, end, cur, multi_loop_ref)) {
-                        return true;
-                    }
-                    cur.pop_back();
-                }
-                return false;
-            };
-            // pertubations.emplace_back();
-            std::vector<Pert> tmp;
-            tmp.emplace_back(start, 1);
-            if(multi_loop_impl(level-1, start+1, end, tmp, multi_loop_impl) ){
-                return true;
-            }
-            tmp.pop_back();
-            tmp.emplace_back(start, -1);
-            if(multi_loop_impl(level-1, start+1, end, tmp, multi_loop_impl) ){
-                return true;
-            }
-            tmp.pop_back();
-            return false;
-        };
-        //lvl 0 
-        // pertubations.emplace_back();
-
-        //lvl 1
+        //__P__
         for(int i=0;i<sigdim;i++){
-            pertubations.emplace_back();
-            pertubations.back().emplace_back(i, 1);
-            pertubations.emplace_back();
-            pertubations.back().emplace_back(i, -1);
+            probes.emplace_back(9, i, 1);
         }
-        //lvl 2, bounded by 2**maxSpan
-        const int maxSpan = 16;
-        [&](){
-            for(int span=1;span<maxSpan;span++){
-                for(int i=0;i<sigdim;i++){
-                    for(int lvl=2;lvl<=span;lvl++){
-                        if(multi_loop(lvl, i, i+span) ){
-                            //jump from multiple level loop
-                            return ;
-                        }
-                    }
-                }
-            }
-        }();
+        for(int i=0;i<sigdim;i++){
+            probes.emplace_back(9, i, -1);
+        }
+        if(probes.size() > maxProbe){
+            return ;
+        }
 
-        printf("pertubations.size()=%d, per-dim=%d\n", pertubations.size(), pertubations.size()/sigdim);
+        //__PP__
+        for(int i=0;i<sigdim;i++){
+            probes.emplace_back(18, i, 1,  (i+1)%sigdim, 1);
+            probes.emplace_back(18, i, 1,  (i+1)%sigdim, -1);
+            probes.emplace_back(18, i, -1, (i+1)%sigdim, 1);
+            probes.emplace_back(18, i, -1, (i+1)%sigdim, -1);
+        }
+        if(probes.size() > maxProbe){
+            return ;
+        }
+
+        //__P_P__
+        for(int i=0;i<sigdim;i++){
+            probes.emplace_back(23, i, 1,  (i+2)%sigdim, 1);
+            probes.emplace_back(23, i, 1,  (i+2)%sigdim, -1);
+            probes.emplace_back(23, i, -1, (i+2)%sigdim, 1);
+            probes.emplace_back(23, i, -1, (i+2)%sigdim, -1);
+        }
+        if(probes.size() > maxProbe){
+            return ;
+        }
+
+        //__P__P__
+        for(int i=0;i<sigdim;i++){
+            probes.emplace_back(28, i, 1,  (i+3)%sigdim, 1);
+            probes.emplace_back(28, i, 1,  (i+3)%sigdim, -1);
+            probes.emplace_back(28, i, -1, (i+3)%sigdim, 1);
+            probes.emplace_back(28, i, -1, (i+3)%sigdim, -1);
+        }
+        if(probes.size() > maxProbe){
+            return ;
+        }
+
+        //__PPP__
+        for(int i=0;i<sigdim;i++){
+            probes.emplace_back(27, i, 1,  (i+1)%sigdim, 1,  (i+2)%sigdim, 1);
+            probes.emplace_back(27, i, 1,  (i+1)%sigdim, 1,  (i+2)%sigdim, -1);
+            probes.emplace_back(27, i, 1,  (i+1)%sigdim, -1, (i+2)%sigdim, 1);
+            probes.emplace_back(27, i, 1,  (i+1)%sigdim, -1, (i+2)%sigdim, -1);
+            probes.emplace_back(27, i, -1, (i+1)%sigdim, 1,  (i+2)%sigdim, 1);
+            probes.emplace_back(27, i, -1, (i+1)%sigdim, 1,  (i+2)%sigdim, -1);
+            probes.emplace_back(27, i, -1, (i+1)%sigdim, -1, (i+2)%sigdim, 1);
+            probes.emplace_back(27, i, -1, (i+1)%sigdim, -1, (i+2)%sigdim, -1);
+        }
+        if(probes.size() > maxProbe){
+            return ;
+        }
     }
 
-    //static probing is better than dynamic probing
+    //static probing 
     //this version considers the span of pertubation as well
     // f :: vect<SigT>> -> last_pertubation_idx -> IO
     template<class F> 
-    void forSig(int nProbes, const Scalar *data, const F& f)
+    void forSigStatic(int nProbes, const Scalar *data, const F& f)
     {
         std::vector<SigType> ret(sigdim);
 
@@ -245,15 +141,111 @@ public:
         f(ret, -1);
 
         for(int i=0;i<nProbes-1;i++){
-            for(Pert& p:pertubations[i]){
-                ret[p.idx] += p.shift;
-            }
-            f(ret, pertubations[i][0].idx);
-            for(Pert& p:pertubations[i]){
-                ret[p.idx] -= p.shift;
-            }
+            probes[i].for_pertubated(ret, f);
         }
     }
+
+    struct Probe
+    {
+        static const int MAX_PERTS = 3;
+        double score;
+        std::array<int32_t, MAX_PERTS> perts;
+        std::array<int8_t, MAX_PERTS> dirs;
+
+        template<class FCode>
+        void for_pertubated(std::vector<SigType>& codes, const FCode& f){
+            // printf("score= %f\n", score);
+            // printf("pert=  %d, %d, %d\n", perts[0], perts[1], perts[2]);
+            // printf("dirs=  %d, %d, %d\n", dirs[0], dirs[1], dirs[2]);
+            for(int i=0;i<MAX_PERTS;i++){
+                int p = perts[i];
+                int dir = dirs[i];
+                codes[p] += dir;
+            }
+            f(codes, perts[0]);
+            for(int i=0;i<MAX_PERTS;i++){
+                int p = perts[i];
+                int dir = dirs[i];
+                codes[p] -= dir;
+            }
+        }
+
+        bool operator<(const Probe& p) const{
+            return score < p.score;
+        }
+
+        void set_score(double score_) {
+            score = score_;
+        }
+
+        Probe(double score, int p0, int8_t shift0)
+            : score(score), perts{{p0}}, dirs{{shift0, 0, 0}}
+        {} 
+        Probe(double score, int p0, int8_t shift0, int p1, int8_t shift1)
+            : score(score), perts{{p0, p1}}, dirs{{shift0, shift1, 0}}
+        {} 
+        Probe(double score, int p0, int8_t shift0, int p1, int8_t shift1, int p2, int8_t shift2)
+            : score(score), perts{{p0, p1, p2}}, dirs{{shift0, shift1, shift2}}
+        {} 
+    };
+
+    //dynamic probing
+    template<class F> 
+    void forSig(int nProbes, const Scalar *data, const F& f)
+    {
+        std::vector<SigType> ret(sigdim);
+
+        using VectF = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using VectI = Eigen::Matrix<SigType, Eigen::Dynamic, 1>;
+
+        Eigen::Map<const VectF> data_v(data, dim);
+        Eigen::Map<VectI > cur_sig(&ret[0], sigdim);
+
+        // Eigen::Vector<Scalar, Eigen::Dynamic> sig = (p*data_v+b)/r;
+        VectF sig = (p*data_v+b)/r;
+        VectF sig_floor = sig.array().floor();
+        cur_sig = sig.cast<int32_t>();
+        
+        f(ret, -1);
+        if(nProbes<=1){
+            return ;
+        }
+        --nProbes;
+
+        // auto diffp = (cur_sig  -sig) +1.5;
+        // auto diffn = (sig - cur_sig) +0.5;
+        VectF diffp = (sig_floor  -sig);
+        // VectF diffn = (sig - sig_floor);
+
+        auto updateProbe = [&](Probe& p){
+            double score = 0.;
+            for(int i=0;i<Probe::MAX_PERTS;i++){
+                if(p.dirs[i] < 0){
+                    double sqrts = -diffp(p.perts[i])+0.5;
+                    score += sqrts*sqrts;
+                } else if(p.dirs[i] >0){
+                    double sqrts = diffp(p.perts[i])+1.5;
+                    score += sqrts*sqrts;
+                }
+            }
+            p.set_score(score);
+        };
+
+        for(int i=0;i<probes.size();i++){
+            updateProbe(probes[i]);
+        }
+        std::nth_element(probe_indices.begin(), probe_indices.begin()+nProbes, probe_indices.end(), [&](int a, int b){
+            return probes[a] < probes[b];
+        });
+        // std::sort(probe_indices.begin(), probe_indices.begin()+nProbes, [&](int a, int b){
+        //     return probes[a] < probes[b];
+        // });
+        for(int i=0;i<nProbes-1;i++){
+            // printf("probe-%d\n", i);
+            probes[probe_indices[i]].for_pertubated(ret, f);
+        }
+    }
+
 
     int64_t get_memory_usage()
     {
@@ -275,7 +267,9 @@ protected:
         Pert(int i, int shift): idx(i), shift(shift){}
     };
 
-    std::vector<std::vector<Pert> > pertubations;
+    // std::vector<std::vector<Pert> > pertubations;
+    std::vector<Probe> probes;
+    std::vector<int> probe_indices;
     
     // std::vector<Scalar> p;
     // std::vector<Scalar> b;
@@ -296,17 +290,17 @@ public:
 
     int dim;
     int l;
+    int sigdim;
     int num_rotations;
     int last_cp_dim;
     int maxProbePerDim;
-    int sigdim;
     Hasher hasher;
     Transformer transfromer;
     TransformedVectorType transformedVec;
 
     CrossPolytopeMP(int vector_dim,
                 int l, int maxProbePerDim=8, int num_rotations=1,
-                int seed=666)
+                int seed=GLOBAL_SEED)
         :dim(vector_dim), 
          sigdim(l), 
          num_rotations(num_rotations), 
@@ -381,7 +375,7 @@ public:
 
         std::unique_ptr<HashHelper> fht = std::make_unique<HashHelper>(dim);
         hasher.compute_rotated_vectors(data_v, &transformedVec, fht.get());
-        const int maxProbePerDim = 16;
+        // const int maxProbePerDim = 16;
         
         for(int i=0;i<sigdim;i++){
             const auto cmpf = [&](int a, int b){

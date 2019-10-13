@@ -19,8 +19,9 @@ public:
 
         std::normal_distribution<double> normal(0.);
         std::uniform_real_distribution<double> uniform(0., r);
-        std::random_device rd;
-        std::default_random_engine rng(rd());
+        // std::random_device rd;
+        // std::default_random_engine rng(rd());
+        std::default_random_engine rng(GLOBAL_SEED);
 
         p.resize(K, d);
         b.resize(K);
