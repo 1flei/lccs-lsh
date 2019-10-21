@@ -5,13 +5,13 @@ from time import gmtime, strftime
 
 #a decorator
 def list_expansion(f):
-    def g(*args):
+    def g(*args, **kwargs):
         args_copy = list(args)
         for i, arg in enumerate(args):
             if type(arg) == list:
                 for element in arg:
                     args_copy[i] = element
-                    g(*args_copy)
+                    g(*args_copy, **kwargs)
                 return 
         f(*args)
     return g
@@ -67,7 +67,7 @@ def get_method_name(method, distance):
     return method_name_dict[(method, distance)]
 
 @list_expansion
-def run_alg(method_obj, dataset, distance, curtime=None):
+def run_alg(method_obj, dataset, distance, curtime=None, binary_name='../bin/lcsb'):
     method = method_obj.name
     # print(method, dataset, distance)
     method_name = get_method_name(method, distance)
@@ -77,19 +77,21 @@ def run_alg(method_obj, dataset, distance, curtime=None):
     distance_dataset_arg = get_dataset_distance_params(dataset, distance)
 
     for method_arg in method_obj.for_param(distance):
-        cmd = '../bin/lcsb %s %s %s %s'%(method_name_arg, common_args, distance_dataset_arg, method_arg)
+        cmd = '%s %s %s %s %s'%(binary_name, method_name_arg, common_args, distance_dataset_arg, method_arg)
         print(cmd)
         os.system(cmd)
 
 
 possible_algs = [LCCS(), LCCS_MP(), C2LSH(), E2LSH(), MPLSH()]
 possible_distances = ['l2', 'angle']
-possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove(), Glove100(), Msong(), Deep()]
+# possible_datasets = [MNIST784(), Sift(), Sift10M(), Gist(), Trevi(), Glove(), Glove100(), Msong(), Deep()]
+possible_datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
     # run_alg([LCCS_MP(), C2LSH(), E2LSH()], [Deep()], 'l2')
-    # run_alg([LCCS_MP()], [Deep()], 'angle')
+    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle', None, './lcsb')
+    # run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
+    run_alg([E2LSH()], [Gist(), Glove100(), Deep()], 'angle', None, './lcsb')
     # run_alg([LCCS(), LCCS_MP(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'l2')
-    run_alg([LCCS(), LCCS_MP(), C2LSH(), E2LSH(), MPLSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
     # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')

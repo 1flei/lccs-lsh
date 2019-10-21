@@ -3,6 +3,7 @@
 #include "../hashAlg/e2eigen.h"
 #include "../hashAlg/polytope.h"
 #include <queue>
+#include <cassert>
 
 //multi-probe version of E2Eigen
 class E2MP
@@ -275,6 +276,9 @@ protected:
     // std::vector<Scalar> b;
 };
 
+class CrossPolytopeMP;
+
+
 //multi-probe version of CP hasher
 class CrossPolytopeMP
 {
@@ -298,6 +302,18 @@ public:
     Transformer transfromer;
     TransformedVectorType transformedVec;
 
+    std::vector<std::vector<int> > idx;
+    std::vector<double> maxdiff;
+
+    struct SinglePert
+    {
+        double score;
+        int32_t loc;
+        int32_t val;
+        SinglePert(double s, int32_t l, int32_t v): score(s), loc(l), val(v) {}
+    };
+    std::vector<std::vector<SinglePert> > pertVecs;
+
     CrossPolytopeMP(int vector_dim,
                 int l, int maxProbePerDim=8, int num_rotations=1,
                 int seed=GLOBAL_SEED)
@@ -314,12 +330,20 @@ public:
         printf("cp_mp_hasher: dim=%d, l=%d, maxProbePerDim=%d\n", vector_dim, l, maxProbePerDim);
 
         idx.resize(sigdim);
-        for(int i=0;i<sigdim;i++){
+        for(int i=0;i<idx.size();i++){
             idx[i].resize(vector_dim*2);
-            for(int j=0;j<vector_dim*2;j++){
+            for(int j=0;j<idx[i].size();j++){
                 idx[i][j] = j;
             }
         }
+
+        pertVecs.resize(sigdim);
+        for(int i=0;i<pertVecs.size();i++){
+            pertVecs[i].reserve(dim-1);
+        }
+
+        maxdiff.resize(sigdim);
+        que_pool.reserve(maxProbePerDim * sigdim);
     }
 
     std::vector<SigType> getSig(const Scalar *data)
@@ -342,21 +366,65 @@ public:
         std::copy(res.begin(), res.end(), ret);
     }
 
-    struct ProbeCandidate
-    {
-        double hashValDiff;
-        int loc;
-        int value;
-        ProbeCandidate(double d, int loc, int v): hashValDiff(d), loc(loc), value(v) {}
 
-        bool operator<(const ProbeCandidate& p) const {
-            return hashValDiff < p.hashValDiff;
+    struct Probe
+    {
+        static const int MAX_PERTS = 3;
+        double score;
+
+        std::array<int32_t, MAX_PERTS> locs;
+        std::array<int32_t, MAX_PERTS> values;
+
+        bool operator<(const Probe& p) const {
+            return score < p.score;
+        }
+
+        void set_score(double score_) {
+            score = score_;
+        }
+
+        Probe(double score, int p0, int value0)
+            : score(score), locs{{p0, -1, -1}}, values{{value0, 0, 0}}
+        {} 
+        Probe(double score, int p0, int value0, int p1, int value1)
+            : score(score), locs{{p0, p1, -1}}, values{{value0, value1, 0}}
+        {} 
+        Probe(double score, int p0, int value0, int p1, int value1, int p2, int value2)
+            : score(score), locs{{p0, p1, p2}}, values{{value0, value1, value2}}
+        {} 
+
+
+        void print(){
+            std::cout << "---probe---\n";
+            std::cout << "  score=" << score << "\n";
+            printVec(locs.begin(), CrossPolytopeMP::Probe::MAX_PERTS);
+            printVec(values.begin(), CrossPolytopeMP::Probe::MAX_PERTS);
         }
     };
 
-    //cannot easily apply static pertubations, will do dynamic one
-    //this version considers the span of pertubation as well
-    // f :: vect<SigT>> -> last_pertubation_idx -> IO
+    std::vector<Probe> que_pool;
+
+    template<class FCode>
+    void for_pertubated(const Probe& probe, std::vector<SigType>& codes, const FCode& f){
+        std::array<int32_t, Probe::MAX_PERTS> tmp;
+        for(int i=0;i<Probe::MAX_PERTS;i++){
+            int p = probe.locs[i];
+            if(p < 0){
+                break;
+            }
+            tmp[i] = codes[p];
+            codes[p] = idx[p][probe.values[i]];
+        }
+        f(codes, probe.locs[0]);
+        for(int i=0;i<Probe::MAX_PERTS;i++){
+            int p = probe.locs[i];
+            if(p < 0){
+                break;
+            }
+            codes[p] = tmp[i];
+        }
+    }
+
     template<class F> 
     void forSig(int nProbes, const Scalar *data, const F& f)
     {
@@ -375,37 +443,123 @@ public:
 
         std::unique_ptr<HashHelper> fht = std::make_unique<HashHelper>(dim);
         hasher.compute_rotated_vectors(data_v, &transformedVec, fht.get());
-        // const int maxProbePerDim = 16;
+
+        //__P__: real queue with calculated value  
+        //__PP__, __P_P__, __PPP__: virtual queue that will compute the score only when needed
+
+        //compute the maximum absolute difference
+        for(int i=0;i<sigdim;i++){
+            double maxAbsDiff = 0;
+            for(int j=1;j<dim;j++){
+                double absval = abs(transformedVec[i][j]);
+                maxAbsDiff = std::max(absval, maxAbsDiff);
+            }
+            maxdiff[i] = maxAbsDiff;
+        }
+
+        auto get_transformed_value = [&](int i, int a){
+            if(a < dim){
+                return transformedVec[i][a];
+            } else{
+                return -transformedVec[i][a-dim];
+            }
+        };
+
+        const int MAX_CANDS = 3;
+        const int MAX_GAPS = 3;
+
+        auto get_score_ij = [&](int i, int j){
+            if(j>=MAX_CANDS){
+                return 1e9;
+            }
+            double ret = get_transformed_value(i, idx[i][j]);
+            return (maxdiff[i]-ret)*(maxdiff[i]-ret);
+        };
         
         for(int i=0;i<sigdim;i++){
             const auto cmpf = [&](int a, int b){
-                double x = a<dim ? transformedVec[i][a] : -transformedVec[i][a-dim];
-                double y = b<dim ? transformedVec[i][b] : -transformedVec[i][b-dim];
+                double x = get_transformed_value(i, a);
+                double y = get_transformed_value(i, b);
                 return x > y;
             };
-            std::nth_element(idx[i].begin(), idx[i].begin()+maxProbePerDim+1, idx[i].end(), cmpf);
-            std::sort(idx[i].begin(), idx[i].begin()+maxProbePerDim+1, cmpf);
-
-            // printVec(&transformedVec[i][0], dim);
-            // printf("idx=%d, %d, ... \n\n", idx[i][0], idx[i][1]);
+            std::partial_sort(idx[i].begin(), idx[i].begin()+MAX_CANDS, idx[i].end(), cmpf);
+            // std::sort(idx[i].begin(), idx[i].end(), cmpf);
 
             ret[i] = idx[i][0];
         }
 
         //first probe
         f(ret, -1);
+
+        //one more deref using int, might be possible to replace it using pointer
+        auto probep_cmpf = [&](int p0, int p1){
+            return que_pool[p0].score > que_pool[p1].score;
+        };
+
+        std::priority_queue<int, std::vector<int>, decltype(probep_cmpf)> que(probep_cmpf);
+        que_pool.clear();
+
+        auto push_que = [&](const Probe& p) {
+            // assert(que_pool.size() < que_pool.capacity());
+            que_pool.push_back(p);
+            que.push(que_pool.size()-1);
+        };
+
+        auto top_que = [&]() -> Probe const& {
+            return que_pool[que.top()];
+        };
+
+        auto pop_que = [&]() {
+            que.pop();
+        };
+
+        for(int i=0;i<sigdim;i++){
+            push_que(Probe(get_score_ij(i, 1), i, 1));
+        }
         int probeCnt = 1;
-        for(int j=1;j<maxProbePerDim+1;j++){
-            for(int i=0;i<idx.size();i++){
-                int tmp = ret[i];
-                ret[i] = idx[i][j];
-                f(ret, i);
-                ret[i] = tmp;
+        for(int probeCnt=1; !que.empty() && probeCnt < nProbes; probeCnt++){
+            Probe p = top_que();
+            pop_que();
+
+            for_pertubated(p, ret, f);
+
+            // p.print();
+
+            for(int i=0;i<Probe::MAX_PERTS;i++){
+                if(p.locs[i] < 0){
+                    int extend_loc = i;
+                    int shift_loc = i-1;    //this will never be less than 0
+
+                    int cur_loc = p.locs[i-1];
+                    int cur_value = p.values[i-1];
+
+                    //shift
+                    if(cur_value < dim-1 && cur_value < MAX_CANDS){
+                        Probe p_shift = p;
+                        double shift_score = p.score - 
+                            get_score_ij(cur_loc, cur_value) + 
+                            get_score_ij(cur_loc, cur_value+1);
+                        p_shift.score = shift_score;
+                        p_shift.values[shift_loc]++;
+                        push_que(p_shift);
+                    }
+
+                    //extend
+                    for(int diff=1;diff<MAX_GAPS;diff++){
+                        Probe p_extend = p;
+                        int new_loc = (cur_loc+diff)%sigdim;
+                        double extend_score = p.score + get_score_ij(new_loc, 1);
+                        p_extend.score = extend_score;
+                        p_extend.locs[extend_loc] = new_loc;
+                        p_extend.values[extend_loc] = 1;
+                        push_que(p_extend);
+                    }
+
+                    break;
+                }
             }
         }
     }
-
-    std::vector<std::vector<int> > idx;
 
     int64_t get_memory_usage()
     {

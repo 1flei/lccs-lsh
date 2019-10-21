@@ -9,7 +9,9 @@ class C2Bucketing
 {
 public:
     // C2Bucketing(int n, int L, int K) : nPnts(n), L(L), buckets(L), K(K), cm(0){};
-    C2Bucketing(int n, int L) : nPnts(n), L(L), buckets(L), cm(0){
+    C2Bucketing(int n, int L, int threshold) 
+        : nPnts(n), L(L), threshold(threshold), buckets(L), cm(0)
+    {
         cm.resize(nPnts);
         cnt.resize(nPnts);
         cntidx.resize(nPnts);
@@ -21,7 +23,7 @@ public:
     };
     int nPnts;
     int L;
-    int K;      //threshold
+    int threshold;      //threshold
     // const std::vector<std::vector<SigType> > *codesp;
     SigType** codesp;
 
@@ -82,12 +84,10 @@ public:
 
     //threshold strategy
     template<typename F>
-    void for_candidates(int threshold, const std::vector<SigType> &qcode, const F& f) 
+    void for_candidates(int nCandidates, const std::vector<SigType> &qcode, const F& f) 
     {
         // int nMarked = 0;    
         cm.clear();
-        buckets.reserve(L);
-        int maxChecked = nPnts/10;
         int nCheckd = 0;
         // std::fill(cnt.begin(), cnt.end(), 0);
         for(int j=0;j<L;j++){
@@ -100,7 +100,7 @@ public:
                         if(cnt[idx]==threshold){
                             f(idx);
                             nCheckd++;
-                            if(nCheckd >= maxChecked){
+                            if(nCheckd >= nCandidates){
                                 return;
                             }
                         }

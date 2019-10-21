@@ -22,13 +22,23 @@ class LCCS_MP:
                 yield '-L %d -p %d'%(l, p)
 
 class C2LSH:
-    def __init__(self, Ls=[8, 16, 32, 64, 128, 256, 512]):
+    def __init__(self, Ls=[8, 16, 32, 64, 128, 256, 512], threshold_ratios=[0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]):
         self.Ls = Ls
+        self.threshold_ratios = threshold_ratios
         self.name = 'c2lsh'
 
     def for_param(self, distance):
         for l in self.Ls:
-            yield '-L %d'%l
+            last_threshold = -1
+            for threshold_ratio in self.threshold_ratios:
+                threshold = int(threshold_ratio*l+0.5)
+                if threshold == last_threshold:
+                    continue
+                else:
+                    last_threshold = threshold
+                if threshold > l:
+                    continue
+                yield '-L %d --cnt_threshold %d'%(l, threshold)
 
 class E2LSH:
     def __init__(self, Ks=[3, 4, 5, 6, 7, 8, 9, 10], Ls=[8, 16, 32, 64, 128, 256, 512], maxHasher=512):
@@ -44,7 +54,7 @@ class E2LSH:
                     yield '-L %d -K %d'%(l, k)
 
 class MPLSH:
-    def __init__(self, Ks=[5, 6, 7, 8, 9, 10], Ls=[8, 16, 32, 64, 128, 256, 512], maxHasher=512, Ks_angle=[2, 3, 4, 5, 6, 7, 8, 9, 10]):
+    def __init__(self, Ks=[3, 4, 5, 6, 7, 8, 9, 10], Ls=[8, 16, 32, 64, 128, 256, 512], maxHasher=512, Ks_angle=[2, 3, 4, 5, 6, 7, 8, 9, 10]):
         self.Ks = Ks
         self.Ls = Ls
         self.name = 'mplsh'

@@ -13,10 +13,10 @@ namespace mylccs
 class MP_LCCS_L2
 {
 public:
-    MP_LCCS_L2(int n, int dim, int L, float W, int defaultNProbe=2) 
+    MP_LCCS_L2(int n, int dim, int L, float W, double nProbeTimes=2) 
         : nPnts(n), dim(dim), L(L), W(W), cm(n), 
-        lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
-        hasher(dim, L, W, defaultNProbe), bucketer(L, 1)
+        lookupLen(std::min(L-1, lookupLen) ), nProbeTimes(nProbeTimes), 
+        hasher(dim, L, W, nProbeTimes), bucketer(L, 1)
     {
     };
     
@@ -44,7 +44,7 @@ public:
     {
         // int checkedCandidates = 4*nProbes;
         // int checkedCandidates = 16;
-        int nProbes = defaultNProbe*L+1;
+        int nProbes = nProbeTimes*L+1;
         hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int firstIdx){
             if(firstIdx==-1){
                 // printf("hq0\n");
@@ -76,7 +76,7 @@ public:
     float W;
     CountMarker cm;
     int lookupLen;
-    int defaultNProbe;
+    double nProbeTimes;
 
     const float** data;
 
@@ -90,10 +90,10 @@ public:
 class MP_LCCS_CP
 {
 public:
-    MP_LCCS_CP(int n, int dim, int L, int defaultNProbe=2) 
+    MP_LCCS_CP(int n, int dim, int L, double nProbeTimes=2) 
         : nPnts(n), dim(dim), L(L), cm(n), 
-        lookupLen(std::min(L-1, lookupLen) ), defaultNProbe(defaultNProbe), 
-        hasher(dim, L, defaultNProbe), bucketer(L, 1)
+        lookupLen(std::min(L-1, lookupLen) ), nProbeTimes(nProbeTimes), 
+        hasher(dim, L, nProbeTimes), bucketer(L, 1)
     {
     };
     int nPnts;
@@ -101,7 +101,7 @@ public:
     int L;
     CountMarker cm;
     int lookupLen;
-    int defaultNProbe;
+    double nProbeTimes;
     CrossPolytopeMP hasher;
 
     const float** data;
@@ -134,7 +134,7 @@ public:
     {
         // int checkedCandidates = 4*nProbes;
         // int checkedCandidates = 16;
-        int nProbes = defaultNProbe*L+1;
+        int nProbes = nProbeTimes*L+1;
         hasher.forSig(nProbes, query, [&](const std::vector<E2MP::SigType>& qcode, int firstIdx){
             if(firstIdx==-1){
                 // printf("hq0\n");

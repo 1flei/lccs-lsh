@@ -23,7 +23,7 @@ public:
         codesp = codes.to_cptr();
         nPnts  = codes.lens[0];
 
-        printf("lens=%d, %d,   dim=%d\n", codes.lens[0], codes.lens[1], dim);
+        // printf("lens=%d, %d,   dim=%d\n", codes.lens[0], codes.lens[1], dim);
         //do nothing but remembering codes & init idx
         idx.resize(codes.lens[0]);
         for(int i=0;i<codes.lens[0];i++){

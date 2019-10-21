@@ -16,7 +16,8 @@ bool MP_LCCS_REGISTED = registerCallback("mp_lccs",
 	const Result** ground_truth = argAs<const Result**>("ground_truth");
 	string output_filename = argAs<string>("output_filename");
 
-    int p = argAs<int>("p");
+    // int p = argAs<int>("p");
+    double p = argAs<double>("p");
 
     // typedef MPLSH Index;
     typedef mylccs::MP_LCCS_L2 Index;
@@ -28,7 +29,7 @@ bool MP_LCCS_REGISTED = registerCallback("mp_lccs",
         return index;
     };
 
-    fprintf(fp.get(), "mp_lccs  r=%f, L=%d, p=%d\n", r, L, p);
+    fprintf(fp.get(), "mp_lccs  r=%f, L=%d, p=%f\n", r, L, p);
     // std::vector<int> nProbess = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
     std::vector<int> nScanss = {1, 2, 4, 8, 16, 32, 64};
 
@@ -56,7 +57,8 @@ bool POLYTOPE_MP_LCCS_REGISTED = registerCallback("polytope_mplccs",
 	const Result** ground_truth = argAs<const Result**>("ground_truth");
 	string output_filename = argAs<string>("output_filename");
 
-    int p = argAs<int>("p");
+    // int p = argAs<int>("p");
+    double p = argAs<double>("p");
 
     // typedef MPLSH Index;
     typedef mylccs::MP_LCCS_CP Index;
@@ -68,7 +70,7 @@ bool POLYTOPE_MP_LCCS_REGISTED = registerCallback("polytope_mplccs",
         return index;
     };
 
-    fprintf(fp.get(), "cross_polytope mp_lccs  L=%d, p=%d\n", L, p);
+    fprintf(fp.get(), "cross_polytope mp_lccs  L=%d, p=%f\n", L, p);
     // std::vector<int> nProbess = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
     std::vector<int> nScanss = {1, 2, 4, 8, 16, 32, 64};
 

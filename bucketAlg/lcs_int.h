@@ -498,7 +498,7 @@ namespace mylccs
 
 			printf("len=%d, newlen=%d, nBits=%d\n", len1, newVecLen, nBits);
 
-			compactCodes.resize({data.lens[0], newVecLen});
+			compactCodes.resize({data.lens[0], (std::size_t)newVecLen});
 
 			for(int i=0;i<data.lens[0];i++){
 				process_vec(len1, &data[i][0], &compactCodes[i][0]);
