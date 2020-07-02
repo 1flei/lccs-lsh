@@ -92,7 +92,7 @@ possible_datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
-    run_alg([LCCS()], [MNIST784()], 'l2')
+    run_alg([LCCS()], [Sift()], 'l2')
     # run_alg([SRS()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
     # run_alg([SRS()], [Sift()], 'l2', binary_name='./lccs')
     # run_alg([QALSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
