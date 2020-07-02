@@ -28,12 +28,12 @@ def run_ground_truth(datasets, dist='l2', isbinary=True):
         args = getArgs(ds)
 
         binary_input = '--binary_input' if isbinary else ''
-        cmd = './lcsb -A %s %s %s'%(dist_alg_dict[dist], args, binary_input)
+        cmd = './lccs -A %s %s %s'%(dist_alg_dict[dist], args, binary_input)
         print(cmd)
         os.system(cmd)
 
-datasets = [Sift()]
 if __name__ == '__main__':
+    datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
     run_ground_truth(datasets=datasets, dist='l2')
     run_ground_truth(datasets=datasets, dist='angle')
     # run_ground_truth(datasets=datasets, dist='cs', isbinary=False)

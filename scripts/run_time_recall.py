@@ -91,15 +91,5 @@ possible_distances = ['l2', 'angle']
 possible_datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
-    # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
-    run_alg([LCCS()], [Sift()], 'l2')
-    # run_alg([SRS()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
-    # run_alg([SRS()], [Sift()], 'l2', binary_name='./lccs')
-    # run_alg([QALSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
-    # run_alg([QALSH()], [Deep()], 'l2', binary_name='./lccs')
-    # run_alg([QALSH(cs=[1.1])], [Deep()], 'l2', binary_name='./lccs')
-    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle', None, './lccs')
-    # run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
-    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', None, './lccs')
-    # run_alg([LCCS(), LCCS_MP(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'l2')
-    # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')
+    run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH(), SRS(), QALSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
+    run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle')

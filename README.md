@@ -1,6 +1,8 @@
-# lcsb
-Longest Common Sub-sequence Bucketing algorithm
+# lccs-lsh
+Locality-Sensitive Hashing Scheme based on Longest Circular Co-Substring
 
+Paper accepted by SIGMOD 2020
+**Locality-Sensitive Hashing Scheme based on Longest Circular Co-Substring. SIGMOD Conference 2020, Yifan Lei, Qiang Huang, Mohan S. Kankanhalli, Anthony K. H. Tung**
 
 To build the project, use the following instructions:
 
@@ -11,17 +13,41 @@ cmake ..
 make -j
 ```
 
-
-To test on the Mnist dataset:
-
-First compute the ground truth using
+This will output the lccs binary. You can use
 
 ```
-./lcsb -A ground_truth_angle -n 60000 -d 50 -q 1000 -D ../data/Mnist/Mnist.ds -Q ../data/Mnist/Mnist.q -O ../data/ts/Mnist.angle
+./lccs -h
 ```
 
-Then run
+for simple help information.
+
+In order to make the program, you may need a compiler supporting c++17 and the program has the following additional dependencies:
+
+**Boost**
+
+**GSL** (required by lshkit)
+
+Other dependencies should be already included in this repository. 
+
+
+We provide the Mnist dataset as a simple example. To run the LCCS-LSH algorithm on the Mnist data, you can simple run the following instructions in the build folder (python 3+ required):
 
 ```
- ./lcsb -A srp_lcs -n 60000 -q 100 -d 50 -K 512 -D ../data/Mnist/Mnist.ds -Q ../data/Mnist/Mnist.q -G ../data/ts/Mnist.angle -O ./srp_lcslsh.out
+python ../scripts/run_simple_experiment.py
 ```
+
+This will work like a shell scirpt and invode the program using command line.
+
+To run more experiments, you may need to prepare the datasets in the data folder properly like the Mnist dataset. 
+Once the datasets are properly prepared, you can simply run (in the build folder as well)
+
+```
+python ../scripts/run_ground_truth.py
+python ../scripts/run_time_recall.py
+```
+
+
+The plot scripts can be found in ./scripts/lccs_plot. You can run the plot_sigmod.py to reproduce the figure shown in the paper. 
+
+In order to run the scripts, you may need numpy, scipy and matplotlib.
+The scripts will automatically use the latest result indicated by the timestamp in the result file name. 
