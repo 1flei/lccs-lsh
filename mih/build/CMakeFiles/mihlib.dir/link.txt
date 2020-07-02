@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmihlib.a  CMakeFiles/mihlib.dir/src/array32.cpp.o CMakeFiles/mihlib.dir/src/mihasher.cpp.o CMakeFiles/mihlib.dir/src/sparse_hashtable.cpp.o CMakeFiles/mihlib.dir/src/bucket_group.cpp.o CMakeFiles/mihlib.dir/src/reorder.cpp.o CMakeFiles/mihlib.dir/src/myMihasher.cpp.o
-/usr/bin/ranlib libmihlib.a

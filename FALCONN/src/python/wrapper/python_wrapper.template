@@ -1,0 +1,240 @@
+#include <falconn/falconn_global.h>
+#include <falconn/lsh_nn_table.h>
+
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <Eigen/Dense>
+
+#include <memory>
+
+namespace falconn {
+namespace python {
+
+class PyLSHNearestNeighborTableError : public FalconnError {
+ public:
+  PyLSHNearestNeighborTableError(const char* msg) : FalconnError(msg) {}
+};
+
+namespace py = pybind11;
+
+template <typename T>
+using NumPyArray = py::array_t<T, py::array::c_style>;
+template <typename T>
+using EigenMap = Eigen::Map<DenseVector<T>>;
+
+template <typename T>
+inline EigenMap<T> numpy_to_eigen(NumPyArray<T> x) {
+  py::buffer_info buf = x.request();
+  if (buf.ndim != 1) {
+    throw PyLSHNearestNeighborTableError("expected a one-dimensional array");
+  }
+  return EigenMap<T>((T *)buf.ptr, buf.shape[0]);
+}
+
+template <typename T>
+PlainArrayPointSet<T> numpy_to_plain_dataset(NumPyArray<T> dataset) {
+  py::buffer_info buf = dataset.request();
+  if (buf.ndim != 2) {
+    throw PyLSHNearestNeighborTableError("expected a two-dimensional array");
+  }
+  size_t num_points = buf.shape[0];
+  size_t dimension = buf.shape[1];
+  PlainArrayPointSet<T> converted_points;
+  converted_points.data = (T *)buf.ptr;
+  converted_points.num_points = num_points;
+  converted_points.dimension = dimension;
+  return converted_points;
+}
+
+template <typename T>
+using LSHTable = LSHNearestNeighborTable<DenseVector<T>>;
+template <typename T>
+using LSHQueryObject = LSHNearestNeighborQuery<DenseVector<T>>;
+template <typename T>
+using LSHQueryPool = LSHNearestNeighborQueryPool<DenseVector<T>>;
+
+{% for (namespace_name, scalar_type, scalar_type_capitalized) in [('single_precision', 'float', 'Float'), ('double_precision', 'double', 'Double')] %}namespace {{namespace_name}} {
+
+typedef {{scalar_type}} ScalarType;
+typedef DenseVector<ScalarType> InnerVector;
+typedef EigenMap<ScalarType> InnerEigenMap;
+typedef PlainArrayPointSet<ScalarType> InnerPlainArrayPointSet;
+typedef LSHTable<ScalarType> InnerLSHTable;
+typedef LSHQueryObject<ScalarType> InnerLSHQueryObject;
+typedef LSHQueryPool<ScalarType> InnerLSHQueryPool;
+
+typedef NumPyArray<ScalarType> OuterNumPyArray;
+
+class PyLSHNearestNeighborQueryDense{{scalar_type_capitalized}} {
+ public:
+  PyLSHNearestNeighborQueryDense{{scalar_type_capitalized}}(
+      std::shared_ptr<InnerLSHQueryObject> query_object)
+      : inner_entity_(query_object) {}
+
+{% include 'methods.template' %}
+
+  private:
+  std::shared_ptr<InnerLSHQueryObject> inner_entity_;
+};
+
+class PyLSHNearestNeighborQueryPoolDense{{scalar_type_capitalized}} {
+ public:
+  PyLSHNearestNeighborQueryPoolDense{{scalar_type_capitalized}}(
+      std::shared_ptr<InnerLSHQueryPool> query_pool)
+      : inner_entity_(query_pool) {}
+
+{% include 'methods.template' %}
+
+ private:
+  std::shared_ptr<InnerLSHQueryPool> inner_entity_;
+};
+
+typedef PyLSHNearestNeighborQueryDense{{scalar_type_capitalized}} OuterLSHQueryObject;
+typedef PyLSHNearestNeighborQueryPoolDense{{scalar_type_capitalized}} OuterLSHQueryPool;
+
+class PyLSHNearestNeighborTableDense{{scalar_type_capitalized}} {
+ public:
+  PyLSHNearestNeighborTableDense{{scalar_type_capitalized}}(std::shared_ptr<InnerLSHTable> table)
+      : table_(table) {}
+
+  std::unique_ptr<OuterLSHQueryObject> construct_query_object(
+      int_fast64_t num_probes = -1,
+      int_fast64_t max_num_candidates = -1) const {
+    std::unique_ptr<InnerLSHQueryObject> inner_query_object =
+        table_->construct_query_object(num_probes, max_num_candidates);
+    return std::unique_ptr<OuterLSHQueryObject>(
+        new OuterLSHQueryObject(std::move(inner_query_object)));
+  }
+
+  std::unique_ptr<OuterLSHQueryPool> construct_query_pool(
+      int_fast64_t num_probes = -1, int_fast64_t max_num_candidates = -1,
+      int_fast64_t num_query_objects = 0) const {
+    std::unique_ptr<InnerLSHQueryPool> inner_query_pool =
+        table_->construct_query_pool(num_probes, max_num_candidates,
+                                     num_query_objects);
+    return std::unique_ptr<OuterLSHQueryPool>(
+        new OuterLSHQueryPool(std::move(inner_query_pool)));
+  }
+
+ private:
+  std::shared_ptr<InnerLSHTable> table_;
+};
+
+typedef PyLSHNearestNeighborTableDense{{scalar_type_capitalized}} OuterLSHTable;
+
+std::unique_ptr<OuterLSHTable> construct_table_dense_{{scalar_type}}(
+    OuterNumPyArray points, const LSHConstructionParameters &params) {
+  InnerPlainArrayPointSet converted_points = numpy_to_plain_dataset(points);
+  std::unique_ptr<InnerLSHTable> inner_table =
+      construct_table<InnerVector, int32_t, InnerPlainArrayPointSet>(
+          converted_points, params);
+  return std::unique_ptr<OuterLSHTable>(
+      new OuterLSHTable(std::move(inner_table)));
+}
+
+}  // namespace {{namespace_name}}
+
+{% endfor %}PYBIND11_MODULE(_falconn, m) {
+  using single_precision::PyLSHNearestNeighborTableDenseFloat;
+  using single_precision::PyLSHNearestNeighborQueryDenseFloat;
+  using single_precision::PyLSHNearestNeighborQueryPoolDenseFloat;
+  using single_precision::construct_table_dense_float;
+  using double_precision::PyLSHNearestNeighborTableDenseDouble;
+  using double_precision::PyLSHNearestNeighborQueryDenseDouble;
+  using double_precision::PyLSHNearestNeighborQueryPoolDenseDouble;
+  using double_precision::construct_table_dense_double;
+
+  py::enum_<LSHFamily>(m, "LSHFamily")
+      .value("Unknown", LSHFamily::Unknown)
+      .value("Hyperplane", LSHFamily::Hyperplane)
+      .value("CrossPolytope", LSHFamily::CrossPolytope);
+  py::enum_<DistanceFunction>(m, "DistanceFunction")
+      .value("Unknown", DistanceFunction::Unknown)
+      .value("NegativeInnerProduct", DistanceFunction::NegativeInnerProduct)
+      .value("EuclideanSquared", DistanceFunction::EuclideanSquared);
+  py::enum_<StorageHashTable>(m, "StorageHashTable")
+      .value("Unknown", StorageHashTable::Unknown)
+      .value("FlatHashTable", StorageHashTable::FlatHashTable)
+      .value("BitPackedFlatHashTable", StorageHashTable::BitPackedFlatHashTable)
+      .value("STLHashTable", StorageHashTable::STLHashTable)
+      .value("LinearProbingHashTable",
+             StorageHashTable::LinearProbingHashTable);
+  // we do not expose feature_hashing_dimension, since the wrapper does
+  // not support sparse datasets yet
+  py::class_<LSHConstructionParameters>(m, "LSHConstructionParameters")
+      .def(py::init<>())
+      .def_readwrite("dimension", &LSHConstructionParameters::dimension)
+      .def_readwrite("lsh_family", &LSHConstructionParameters::lsh_family)
+      .def_readwrite("distance_function",
+                     &LSHConstructionParameters::distance_function)
+      .def_readwrite("k", &LSHConstructionParameters::k)
+      .def_readwrite("l", &LSHConstructionParameters::l)
+      .def_readwrite("storage_hash_table",
+                     &LSHConstructionParameters::storage_hash_table)
+      .def_readwrite("num_setup_threads",
+                     &LSHConstructionParameters::num_setup_threads)
+      .def_readwrite("seed", &LSHConstructionParameters::seed)
+      .def_readwrite("last_cp_dimension",
+                     &LSHConstructionParameters::last_cp_dimension)
+      .def_readwrite("num_rotations",
+                     &LSHConstructionParameters::num_rotations);
+  // we do not expose a constructor and make all the members read-only
+  py::class_<QueryStatistics>(m, "QueryStatistics")
+      .def_readonly("average_total_query_time",
+                    &QueryStatistics::average_total_query_time)
+      .def_readonly("average_lsh_time", &QueryStatistics::average_lsh_time)
+      .def_readonly("average_hash_table_time",
+                    &QueryStatistics::average_hash_table_time)
+      .def_readonly("average_distance_time",
+                    &QueryStatistics::average_distance_time)
+      .def_readonly("average_num_candidates",
+                    &QueryStatistics::average_num_candidates)
+      .def_readonly("average_num_unique_candidates",
+                    &QueryStatistics::average_num_unique_candidates)
+      .def_readonly("num_queries", &QueryStatistics::num_queries);
+  // we do not expose a constructor
+  py::class_<PyLSHNearestNeighborTableDenseFloat>(
+      m, "PyLSHNearestNeighborTableDenseFloat")
+      .def("construct_query_object",
+           &PyLSHNearestNeighborTableDenseFloat::construct_query_object,
+           py::arg("num_probes") = -1, py::arg("max_num_candidates") = -1)
+      .def("construct_query_pool",
+           &PyLSHNearestNeighborTableDenseFloat::construct_query_pool,
+           py::arg("num_probes") = -1, py::arg("max_num_candidates") = -1,
+           py::arg("num_query_objects") = 0);
+  // we do not expose a constructor
+  py::class_<PyLSHNearestNeighborTableDenseDouble>(
+      m, "PyLSHNearestNeighborTableDenseDouble")
+      .def("construct_query_object",
+           &PyLSHNearestNeighborTableDenseDouble::construct_query_object,
+           py::arg("num_probes") = -1, py::arg("max_num_candidates") = -1)
+      .def("construct_query_pool",
+           &PyLSHNearestNeighborTableDenseDouble::construct_query_pool,
+           py::arg("num_probes") = -1, py::arg("max_num_candidates") = -1,
+           py::arg("num_query_objects") = 0);
+  m.def("construct_table_dense_float", &construct_table_dense_float, "");
+  m.def("construct_table_dense_double", &construct_table_dense_double, "");
+{% for class_name in ['PyLSHNearestNeighborQueryDenseFloat', 'PyLSHNearestNeighborQueryPoolDenseFloat', 'PyLSHNearestNeighborQueryDenseDouble', 'PyLSHNearestNeighborQueryPoolDenseDouble'] %}
+  // we do not expose a constructor
+  py::class_<{{class_name}}>(
+      m, "{{class_name}}"){% for method_name in ['set_num_probes', 'get_num_probes', 'set_max_num_candidates', 'get_max_num_candidates', 'find_nearest_neighbor', 'find_k_nearest_neighbors', 'find_near_neighbors', 'get_unique_candidates', 'get_candidates_with_duplicates', 'reset_query_statistics', 'get_query_statistics'] %}
+      .def("{{method_name}}",
+           &{{class_name}}::{{method_name}}){% endfor %};
+{% endfor %}
+  m.def("compute_number_of_hash_functions",
+        &compute_number_of_hash_functions<DenseVector<float>>,
+        "",
+        py::arg("num_hash_bits"),
+        py::arg("params"));
+  m.def("get_default_parameters",
+        &get_default_parameters<DenseVector<float>>,
+        "",
+        py::arg("num_points"),
+        py::arg("dimension"),
+        py::arg("distance") = DistanceFunction::EuclideanSquared,
+        py::arg("is_sufficiently_dense") = false);
+}
+}  // namespace python
+}  // namespace falconn

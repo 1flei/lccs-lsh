@@ -406,7 +406,7 @@ public:
 
     template<class FCode>
     void for_pertubated(const Probe& probe, std::vector<SigType>& codes, const FCode& f){
-        std::array<int32_t, Probe::MAX_PERTS> tmp;
+        std::array<int32_t, Probe::MAX_PERTS> tmp = {0};
         for(int i=0;i<Probe::MAX_PERTS;i++){
             int p = probe.locs[i];
             if(p < 0){

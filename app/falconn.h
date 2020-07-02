@@ -39,7 +39,7 @@ public:
             int nBits = K;
             falconn::compute_number_of_hash_functions<PointType>(nBits, &params);
 
-            printf("calculated_k=%d, last_cp_dim=%d\n", params.k, params.last_cp_dimension);
+            printf("calculated_k=%ld, last_cp_dim=%ld\n", params.k, params.last_cp_dimension);
             params.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
         }
 

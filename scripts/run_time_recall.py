@@ -53,7 +53,7 @@ def get_common_params(ds, method, maxqn=100, curtime=None):
 
 def get_method_name(method, distance):
     method_name_dict = {
-        ('lccs',    'l2'):    'lcsb', 
+        ('lccs',    'l2'):    'lccs', 
         ('lccs_mp', 'l2'):    'mp_lccs',   
         ('e2lsh',   'l2'):    'e2lsh',
         ('mplsh',   'l2'):    'mplsh_lshkit',
@@ -63,11 +63,14 @@ def get_method_name(method, distance):
         ('e2lsh',   'angle'): 'polytope_e2',
         ('mplsh',   'angle'): 'falconn',
         ('c2lsh',   'angle'): 'polytope_c2',
+
+        ('srs',   'l2'): 'srs',
+        ('qalsh',   'l2'): 'qalsh',
     }
     return method_name_dict[(method, distance)]
 
 @list_expansion
-def run_alg(method_obj, dataset, distance, curtime=None, binary_name='../bin/lcsb'):
+def run_alg(method_obj, dataset, distance, curtime=None, binary_name='./lccs'):
     method = method_obj.name
     # print(method, dataset, distance)
     method_name = get_method_name(method, distance)
@@ -89,9 +92,14 @@ possible_datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
     # run_alg([MPLSH()], [Sift(), Gist(), Glove()], 'angle')
-    # run_alg([LCCS_MP(), C2LSH(), E2LSH()], [Deep()], 'l2')
-    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle', None, './lcsb')
+    run_alg([LCCS()], [MNIST784()], 'l2')
+    # run_alg([SRS()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
+    # run_alg([SRS()], [Sift()], 'l2', binary_name='./lccs')
+    # run_alg([QALSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', binary_name='./lccs')
+    # run_alg([QALSH()], [Deep()], 'l2', binary_name='./lccs')
+    # run_alg([QALSH(cs=[1.1])], [Deep()], 'l2', binary_name='./lccs')
+    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle', None, './lccs')
     # run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
-    run_alg([E2LSH()], [Gist(), Glove100(), Deep()], 'angle', None, './lcsb')
+    # run_alg([LCCS_MP()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2', None, './lccs')
     # run_alg([LCCS(), LCCS_MP(), MPLSH(), C2LSH(), E2LSH()], [Sift()], 'l2')
     # run_alg(LCCS(Ls=[8]), MNIST784(), 'l2', 'test')

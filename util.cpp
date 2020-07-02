@@ -84,15 +84,12 @@ int read_data(						// read data/query set from disk
 	int i   = 0;
 	int tmp = -1;
 	while (!feof(fp) && i < n) {
-		fscanf(fp, "%d", &tmp);
+		assert(fscanf(fp, "%d", &tmp) == 1);
 		for (int j = 0; j < d; ++j) {
-			fscanf(fp, " %f", &data[i][j]);
+			assert(fscanf(fp, " %f", &data[i][j]) == 1);
 		}
-//		fscanf(fp, "\n");
-
 		++i;
 	}
-//	assert(feof(fp) && i == n);
 	fclose(fp);
 
 	return 0;
@@ -112,12 +109,10 @@ int read_data_binary(						// read data/query set from disk
 	}
 
 	int i   = 0;
-	// int tmp = -1;
 	while (!feof(fp) && i < n) {
-		fread(data[i], sizeof(float), d, fp);
+		assert(fread(data[i], sizeof(float), d, fp) == d);
 		++i;
 	}
-//	assert(feof(fp) && i == n);
 	fclose(fp);
 
 	return 0;
@@ -137,15 +132,13 @@ int read_ground_truth(				// read ground truth results from disk
 
 	int tmp1 = -1;
 	int tmp2 = -1;
-	fscanf(fp, "%d %d\n", &tmp1, &tmp2);
-//	assert(tmp1 == qn && tmp2 == MAXK);
+	assert(fscanf(fp, "%d %d\n", &tmp1, &tmp2) == 2);
 	assert(tmp2 == MAXK);
 
 	for (int i = 0; i < qn; ++i) {
 		for (int j = 0; j < MAXK; ++j) {
-			fscanf(fp, "%d %f ", &R[i][j].id_, &R[i][j].key_);
+			assert(fscanf(fp, "%d %f ", &R[i][j].id_, &R[i][j].key_) == 2);
 		}
-		fscanf(fp, "\n");
 	}
 	fclose(fp);
 
@@ -204,22 +197,35 @@ float calc_cosangle(				// calc cos(angle)
 	return ret/sqrt(norm0*norm1);
 }
 
+// // -----------------------------------------------------------------------------
+// float calc_l2_sqr(					// calc L2 square distance
+// 	int   dim,							// dimension
+// 	const float *p1,					// 1st point
+// 	const float *p2)					// 2nd point
+// {
+// 	float diff = 0.0f;
+// 	float ret  = 0.0f;
+// 	for (int i = 0; i < dim; ++i) {
+// 		diff = p1[i] - p2[i];
+// 		ret += diff * diff;
+// 	}
+// 	return ret;
+// }
+
 // -----------------------------------------------------------------------------
-float calc_l2_sqr(					// calc L2 square distance
+float calc_lp_dist(					// calc L_{p} norm
 	int   dim,							// dimension
-	const float *p1,					// 1st point
-	const float *p2)					// 2nd point
+	float p,							// the p value of Lp norm, p in (0,2]
+	const float *vec1,					// 1st point
+	const float *vec2)					// 2nd point
 {
-	float diff = 0.0f;
-	float ret  = 0.0f;
-	for (int i = 0; i < dim; ++i) {
-		diff = p1[i] - p2[i];
-		ret += diff * diff;
+	if (fabs(p - 0.f) < FLOATZERO) {
+		return calc_l0_dist(dim, vec1, vec2);
 	}
-	return ret;
+	else {
+		return calc_lp_dist_p(dim, p, vec1, vec2);
+	}
 }
-
-
 // -----------------------------------------------------------------------------
 float calc_recall(					// calc recall (percentage)
 	int   k,							// top-k value

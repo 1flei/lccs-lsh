@@ -5,7 +5,7 @@
 #include "../myndarray.h"
 #include <unordered_map>
 #include "../lshkit-0.2.1/include/lshkit.h"
-#include <boost/progress.hpp>
+// #include <boost/progress.hpp>
 #include "../register.h"
 #include "../benchmark_util.h"
 #include "../hashAlg/e2.h"

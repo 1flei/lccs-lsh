@@ -256,6 +256,37 @@ inline ScalarType calc_l1_dist(int dim, const ScalarType* x, const ScalarType* y
 }
 
 template<class ScalarType> 
+inline ScalarType calc_l0_dist(int dim, const ScalarType* x, const ScalarType* y)
+{
+	const auto fProd = [](ScalarType a, ScalarType b){
+		return abs(a-b)<FLOATZERO;
+	};
+	const auto fSum = [](ScalarType a, ScalarType b){
+		return a+b;
+	};
+	return fast_reduce(dim, x, y, fProd, fSum);
+}
+
+
+float calc_lp_dist(					// calc L_{p} norm
+	int   dim,							// dimension
+	float p,							// the p value of Lp norm, p in (0,2]
+	const float *vec1,					// 1st point
+	const float *vec2);					// 2nd point
+
+template<class ScalarType> 
+inline ScalarType calc_lp_dist_p(int dim, const ScalarType p, const ScalarType* x, const ScalarType* y)
+{
+	const auto fProd = [p](ScalarType a, ScalarType b){
+		return pow(abs(a-b), p);
+	};
+	const auto fSum = [](ScalarType a, ScalarType b){
+		return a+b;
+	};
+	return pow(fast_reduce(dim, x, y, fProd, fSum), 1./p);
+}
+
+template<class ScalarType> 
 inline ScalarType calc_inner_product(int dim, const ScalarType* x, const ScalarType* y)
 {
 	const auto fProd = [](ScalarType a, ScalarType b){

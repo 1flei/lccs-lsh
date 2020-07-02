@@ -41,6 +41,7 @@ int main(int argc, char **argv)
         ("p,p", value<double>(), "extra probes multiplication of mp_lccs")
         ("step", value<int>(), "parameter used for some algorithms")
         ("r,r", value<double>(), "parameter used for some algorithms")
+        ("c,c", value<double>(), "parameter used for some algorithms")
 
 		("nHashBits", value<int>(), "parameter used for FALCONN")
         // ("cp_dim", value<int>(), "parameter for Crosspolytope Hasher")
@@ -51,10 +52,11 @@ int main(int argc, char **argv)
 		("normalized", "whether to normalize the dataset")
 
 		("alpha", value<double>(), "parameter used for some algorithms")
+
+		("srs_targeted_dimension", value<int>(), "parameter used for SRS")
+        ("p_thres", value<double>(), "parameter used for SRS")
 		
 		("checked_candidate", value<int>()->default_value(100), "the number of candidates to verify for each algorithm")
-        
-        ("msg", value<string>(), "msg")
     ;
 
     variables_map vm;

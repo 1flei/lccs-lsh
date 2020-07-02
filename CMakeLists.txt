@@ -1,9 +1,25 @@
-SET(CMAKE_CXX_COMPILER /usr/bin/g++-8)
+# SET(CMAKE_CXX_COMPILER /usr/bin/g++-8)
 # SET(CMAKE_CXX_COMPILER clang++)
-PROJECT(LCSB)
+PROJECT(LCCS_LSH)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+
+#since the code uses structure binding which is the standard of C++17, 
+#there is the minimum version requisite for the compiler
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
+        message(FATAL_ERROR "GCC version must be at least 7.0!")
+    endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
+        message(FATAL_ERROR "Clang version must be at least 8!")
+    endif()
+else()
+    message(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang and GCC.")
+endif()
+
 set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -28,23 +44,23 @@ include_directories("FALCONN/external/simple-serializer")
 include_directories("FALCONN/external/eigen")
 
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
-ADD_EXECUTABLE(lcsb ${DIR_SRCS}
+ADD_EXECUTABLE(lccs ${DIR_SRCS}
                 "pri_queue.cc"
                 "util.cpp"
                 "register.cpp"
                 "hashAlg/srp.cpp"
                 "hashAlg/pivots.cpp"
-                "bucketAlg/lcs_int_reorder.cpp"
                 "app/composible_index.cpp"
                 "app/ground_truth.cc"
                 "app/mplsh.cpp"
                 "app/falconn.cpp"
                 "app/mp_lccs.cpp"
-
-                # "bucketAlg/lcs_test.cpp"
-                # "bucketAlg/lcs.cpp"
+                "app/srs.cpp"
+                "app/qalsh.cpp"
               )
 
-TARGET_LINK_LIBRARIES( lcsb LINK_PUBLIC ${Boost_LIBRARIES} 
-  ${CMAKE_SOURCE_DIR}/mih/build/libmihlib.a ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
+TARGET_LINK_LIBRARIES( lccs LINK_PUBLIC ${Boost_LIBRARIES} 
+  ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a 
+  ${CMAKE_SOURCE_DIR}/SRS/libsrs.a 
+  ${CMAKE_SOURCE_DIR}/QALSH_Mem/libqalsh.a
   GSL::gsl GSL::gslcblas pthread)
