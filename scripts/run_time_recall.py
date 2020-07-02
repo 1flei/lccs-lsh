@@ -24,6 +24,14 @@ def get_query_path(dataset):
 def get_grount_truth_path(dataset, dist_name='l2'):
     return '../data/%s/%s.%s'%(dataset.name, dataset.name, dist_name)
 
+def create_results_folder(path='../results'):
+    try: 
+        os.makedirs(path)
+    except OSError:
+        if not os.path.isdir(path):
+            raise
+
+
 def get_output_filename(dataset, method, curtime=''):
     return '../results/%s_%s_[%s].out'%(dataset.name, method, curtime)
 
@@ -91,5 +99,6 @@ possible_distances = ['l2', 'angle']
 possible_datasets = [Sift(), Gist(), Glove100(), Msong(), Deep()]
 
 if __name__ == '__main__':
+    create_results_folder()
     run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH(), SRS(), QALSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'l2')
     run_alg([LCCS(), MPLSH(), LCCS_MP(), E2LSH(), C2LSH()], [Sift(), Gist(), Glove100(), Msong(), Deep()], 'angle')
