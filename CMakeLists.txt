@@ -43,24 +43,59 @@ include_directories("FALCONN/src/include")
 include_directories("FALCONN/external/simple-serializer")
 include_directories("FALCONN/external/eigen")
 
-AUX_SOURCE_DIRECTORY(. DIR_SRCS)
-ADD_EXECUTABLE(lccs ${DIR_SRCS}
-                "pri_queue.cc"
-                "util.cpp"
-                "register.cpp"
-                "hashAlg/srp.cpp"
-                "hashAlg/pivots.cpp"
-                "app/composible_index.cpp"
-                "app/ground_truth.cc"
-                "app/mplsh.cpp"
-                "app/falconn.cpp"
-                "app/mp_lccs.cpp"
-                "app/srs.cpp"
-                "app/qalsh.cpp"
-              )
+aux_source_directory(. DIR_SRCS)
+add_executable(lccs ${DIR_SRCS}
+        "pri_queue.cc"
+        "util.cpp"
+        "register.cpp"
+        "hashAlg/srp.cpp"
+        "hashAlg/pivots.cpp"
+        "app/composible_index.cpp"
+        "app/ground_truth.cc"
+        "app/mplsh.cpp"
+        "app/falconn.cpp"
+        "app/mp_lccs.cpp"
+        "app/srs.cpp"
+        "app/qalsh.cpp"
+      )
+      
+add_custom_command(
+  OUTPUT ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build
+  COMMAND cmake ..
+  COMMAND make -j
+)
 
-TARGET_LINK_LIBRARIES( lccs LINK_PUBLIC ${Boost_LIBRARIES} 
+add_custom_target(lshkit
+    DEPENDS ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
+)
+
+add_custom_command(
+  OUTPUT ${CMAKE_SOURCE_DIR}/SRS/libsrs.a 
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/SRS
+  COMMAND make -j
+)
+
+add_custom_target(srs
+    DEPENDS ${CMAKE_SOURCE_DIR}/SRS/libsrs.a 
+)
+
+
+add_custom_command(
+  OUTPUT ${CMAKE_SOURCE_DIR}/QALSH_Mem/libqalsh.a
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/QALSH_Mem
+  COMMAND make -j
+)
+
+add_custom_target(qalsh
+    DEPENDS ${CMAKE_SOURCE_DIR}/QALSH_Mem/libqalsh.a
+)
+
+
+target_link_libraries( lccs LINK_PUBLIC ${Boost_LIBRARIES}
   ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a 
   ${CMAKE_SOURCE_DIR}/SRS/libsrs.a 
   ${CMAKE_SOURCE_DIR}/QALSH_Mem/libqalsh.a
   GSL::gsl GSL::gslcblas pthread)
+
+add_dependencies(lccs lshkit srs qalsh)
