@@ -45,7 +45,7 @@ We provide the Mnist dataset as a simple example. To run the LCCS-LSH algorithm 
 python ../scripts/run_simple_experiment.py
 ```
 
-This will work like a shell scirpt and invode the program using command line.
+This will work as a shell script and invoke the program using the command line.
 
 To run more experiments, you may need to prepare the datasets in the data folder properly like the Mnist dataset. 
 Once the datasets are properly prepared, you can simply run (in the build folder as well)
