@@ -1,6 +1,9 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
+#include <cstdio>
+#include <cmath>
+
 class MinK_List;
 
 extern timeval g_start_time;		// global parameter: start time

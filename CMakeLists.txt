@@ -59,6 +59,8 @@ add_executable(lccs ${DIR_SRCS}
         "app/qalsh.cpp"
       )
       
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build)
+
 add_custom_command(
   OUTPUT ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build/lib/liblshkit.a
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/lshkit-0.2.1/build
